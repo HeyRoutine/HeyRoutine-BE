@@ -4,7 +4,9 @@ spring:
     url: jdbc:mysql://localhost:3306/heyroutine?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
-
+server:
+  servlet:
+    context-path: /api/v1
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
@@ -13,6 +15,9 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
+mail:
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_PASSWORD}
 
 jwt:
   secret : ${JWT_SECRET}
