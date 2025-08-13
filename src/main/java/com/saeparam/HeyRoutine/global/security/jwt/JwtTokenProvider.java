@@ -1,10 +1,10 @@
 package com.saeparam.HeyRoutine.user.token;
 
 
-import com.saeparam.HeyRoutine.exception.handler.TokenHandler;
-import com.saeparam.HeyRoutine.response.code.status.ErrorStatus;
-import com.saeparam.HeyRoutine.user.domain.enums.Role;
-import com.saeparam.HeyRoutine.user.dto.JwtToken;
+import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
+import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
+import com.saeparam.HeyRoutine.domain.user.enums.Role;
+import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

@@ -1,15 +1,15 @@
 package com.saeparam.HeyRoutine.user.service;
 
 
-import com.saeparam.HeyRoutine.exception.handler.TokenHandler;
-import com.saeparam.HeyRoutine.exception.handler.UserHandler;
-import com.saeparam.HeyRoutine.response.code.status.ErrorStatus;
-import com.saeparam.HeyRoutine.user.domain.User;
-import com.saeparam.HeyRoutine.user.dto.JwtToken;
-import com.saeparam.HeyRoutine.user.dto.request.ReissueDto;
-import com.saeparam.HeyRoutine.user.dto.request.ResetPasswordDto;
-import com.saeparam.HeyRoutine.user.dto.request.SignUpDto;
-import com.saeparam.HeyRoutine.user.dto.response.UserDto;
+import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
+import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
+import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
+import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
+import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
 import com.saeparam.HeyRoutine.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
