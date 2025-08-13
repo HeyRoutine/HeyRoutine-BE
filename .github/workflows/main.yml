@@ -2,7 +2,7 @@ name: Build and Deploy to EC2
 
 on:
   push:
-    branches: ["feat/cicd-#7"]
+    branches: ["release"]
 
 # AWS 관련 값 변수로 설정
 env:
