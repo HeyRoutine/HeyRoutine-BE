@@ -51,7 +51,7 @@ public class MailSendService {
         makeRandomNumber();
         String setFrom = "jj99526@naver.com";
         String toMail = email;
-        String title = "🌼 "+text+" – 마음 캔버스";
+        String title = "🌼 "+text+" – HeyRoutine";
 
         String content =
                 "<!DOCTYPE html>" +
