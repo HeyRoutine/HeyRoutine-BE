@@ -1,23 +1,20 @@
-package com.saeparam.HeyRoutine.user.controller;
+package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 
-import com.saeparam.HeyRoutine.response.ApiResponse;
-import com.saeparam.HeyRoutine.user.dto.JwtToken;
-import com.saeparam.HeyRoutine.user.dto.request.ReissueDto;
-import com.saeparam.HeyRoutine.user.dto.request.ResetPasswordDto;
-import com.saeparam.HeyRoutine.user.dto.request.SignInDto;
-import com.saeparam.HeyRoutine.user.dto.request.SignUpDto;
-import com.saeparam.HeyRoutine.user.dto.response.UserDto;
-import com.saeparam.HeyRoutine.user.service.UserService;
-import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
+import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
+import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
+import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.SignInDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
+import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
+import com.saeparam.HeyRoutine.domain.user.service.UserService;
+import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController

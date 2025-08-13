@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.user.token;
+package com.saeparam.HeyRoutine.global.security.jwt;
 
 
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;

@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.user.domain.enums;
+package com.saeparam.HeyRoutine.domain.user.enums;
 
 public enum Role {
   ADMIN("ROLE_ADMIN"),

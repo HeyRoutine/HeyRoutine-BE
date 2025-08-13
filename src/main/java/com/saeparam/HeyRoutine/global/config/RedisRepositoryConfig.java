@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.config;
+package com.saeparam.HeyRoutine.global.config;
 
 
 import lombok.RequiredArgsConstructor;

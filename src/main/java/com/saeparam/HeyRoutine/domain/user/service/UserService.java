@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.user.service;
+package com.saeparam.HeyRoutine.domain.user.service;
 
 
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
@@ -10,8 +10,8 @@ import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
-import com.saeparam.HeyRoutine.user.repository.UserRepository;
-import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
+import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

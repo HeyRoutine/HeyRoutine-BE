@@ -1,8 +1,8 @@
-package com.saeparam.HeyRoutine.response.code.status;
+package com.saeparam.HeyRoutine.global.web.response.code.status;
 
 
-import com.saeparam.HeyRoutine.response.code.BaseCode;
-import com.saeparam.HeyRoutine.response.code.ReasonDTO;
+import com.saeparam.HeyRoutine.global.web.response.code.BaseCode;
+import com.saeparam.HeyRoutine.global.web.response.code.ReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

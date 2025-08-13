@@ -1,6 +1,6 @@
-package com.saeparam.HeyRoutine.user.dto.response;
+package com.saeparam.HeyRoutine.domain.user.dto.response;
 
-import com.saeparam.HeyRoutine.user.domain.User;
+import com.saeparam.HeyRoutine.domain.user.entity.User;
 import lombok.*;
 
 @Getter

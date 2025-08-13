@@ -1,10 +1,9 @@
-package com.saeparam.HeyRoutine.config;
+package com.saeparam.HeyRoutine.global.config;
 
 
-import com.saeparam.HeyRoutine.user.filter.JwtAuthenticationFilter;
-import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
+import com.saeparam.HeyRoutine.global.security.jwt.JwtAuthenticationFilter;
+import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +15,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity

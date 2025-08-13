@@ -1,8 +1,8 @@
-package com.saeparam.HeyRoutine.user.domain;
+package com.saeparam.HeyRoutine.domain.user.entity;
 
 
-import com.saeparam.HeyRoutine.user.domain.enums.Role;
-import com.saeparam.HeyRoutine.util.BaseTime;
+import com.saeparam.HeyRoutine.domain.user.enums.Role;
+import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

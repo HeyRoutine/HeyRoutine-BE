@@ -1,10 +1,11 @@
-package com.saeparam.HeyRoutine.exception;
+package com.saeparam.HeyRoutine.global.error;
 
 
 
-import com.saeparam.HeyRoutine.response.ApiResponse;
-import com.saeparam.HeyRoutine.response.code.ErrorReasonDTO;
-import com.saeparam.HeyRoutine.response.code.status.ErrorStatus;
+import com.saeparam.HeyRoutine.global.error.exception.GeneralException;
+import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
+import com.saeparam.HeyRoutine.global.web.response.code.ErrorReasonDTO;
+import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

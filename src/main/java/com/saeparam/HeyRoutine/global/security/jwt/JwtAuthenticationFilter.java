@@ -1,9 +1,8 @@
-package com.saeparam.HeyRoutine.user.filter;
+package com.saeparam.HeyRoutine.global.security.jwt;
 
 
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
-import com.saeparam.HeyRoutine.user.token.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

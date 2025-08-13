@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.util;
+package com.saeparam.HeyRoutine.global.common.util;
 
 
 import jakarta.persistence.EntityListeners;

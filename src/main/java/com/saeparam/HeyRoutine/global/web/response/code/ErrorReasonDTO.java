@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.response.code;
+package com.saeparam.HeyRoutine.global.web.response.code;
 
 import lombok.Builder;
 import lombok.Getter;

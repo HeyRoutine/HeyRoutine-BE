@@ -1,9 +1,9 @@
-package com.saeparam.HeyRoutine.exception;
+package com.saeparam.HeyRoutine.global.error.exception;
 
 
 
-import com.saeparam.HeyRoutine.response.code.BaseErrorCode;
-import com.saeparam.HeyRoutine.response.code.ErrorReasonDTO;
+import com.saeparam.HeyRoutine.global.web.response.code.BaseErrorCode;
+import com.saeparam.HeyRoutine.global.web.response.code.ErrorReasonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -1,7 +1,7 @@
-package com.saeparam.HeyRoutine.response;
+package com.saeparam.HeyRoutine.global.web.response;
 
-import com.saeparam.HeyRoutine.response.code.BaseCode;
-import com.saeparam.HeyRoutine.response.code.status.SuccessStatus;
+import com.saeparam.HeyRoutine.global.web.response.code.BaseCode;
+import com.saeparam.HeyRoutine.global.web.response.code.status.SuccessStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;

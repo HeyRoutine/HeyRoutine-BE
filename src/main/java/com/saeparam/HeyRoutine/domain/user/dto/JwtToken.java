@@ -1,6 +1,6 @@
-package com.saeparam.HeyRoutine.user.dto;
+package com.saeparam.HeyRoutine.domain.user.dto;
 
-import com.saeparam.HeyRoutine.user.domain.enums.Role;
+import com.saeparam.HeyRoutine.domain.user.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

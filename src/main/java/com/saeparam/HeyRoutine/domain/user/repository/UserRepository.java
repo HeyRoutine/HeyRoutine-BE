@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.user.repository;
+package com.saeparam.HeyRoutine.domain.user.repository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;

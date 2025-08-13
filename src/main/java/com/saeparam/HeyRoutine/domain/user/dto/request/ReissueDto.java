@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.user.dto.request;
+package com.saeparam.HeyRoutine.domain.user.dto.request;
 
 
 import lombok.Getter;
