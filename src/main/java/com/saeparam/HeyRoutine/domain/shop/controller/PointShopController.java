@@ -1,13 +1,19 @@
 package com.saeparam.HeyRoutine.domain.shop.controller;
 
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
+import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.service.PointShopService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,9 +44,9 @@ public class PointShopController {
 
     @GetMapping("/list")
     @Operation(summary = "물건 전체보기 API", description = "물건 전체를 조회합니다.")
-    public ResponseEntity<?> shopList() {
+    public ResponseEntity<?> shopList( @PageableDefault(size = 10, sort = "stock") Pageable pageable) {
 
-        String result=pointShopService.shopList(email);
+        List<PointShopListResponseDto> result=pointShopService.shopList(pageable);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

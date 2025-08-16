@@ -23,9 +23,9 @@ public class PointShopPostRequestDto {
             .brand(pointShopPostRequestDto.getBrand())
             .category(pointShopPostRequestDto.getPointShopCategory())
             .price(pointShopPostRequestDto.getPrice())
-            .productName(pointShopPostRequestDto.productName)
+            .productName(pointShopPostRequestDto.getProductName())
             .stock(pointShopPostRequestDto.getStock())
-            .imageUrl(pointShopPostRequestDto.imageUrl)
+            .imageUrl(pointShopPostRequestDto.getImageUrl())
             .build();
   }
 }
