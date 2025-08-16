@@ -2,11 +2,13 @@ package com.saeparam.HeyRoutine.domain.shop.service;
 
 
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
+import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.entity.PointShop;
 import com.saeparam.HeyRoutine.domain.shop.repository.PointShopRepository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.error.handler.ShopHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
@@ -39,5 +41,12 @@ public class PointShopService {
     public List<PointShopListResponseDto> shopList(Pageable pageable) {
         Page<PointShop> productList=pointShopRepository.findAll(pageable);
         return productList.map(PointShopListResponseDto::toDto).stream().toList();
+    }
+
+    public PointShopDetailResponseDto getProductDetail(Long productId) {
+        PointShop product = pointShopRepository.findById(productId)
+                .orElseThrow(() -> new ShopHandler(ErrorStatus.PRODUCT_NOT_FOUND));
+
+        return PointShopDetailResponseDto.toDto(product);
     }
 }

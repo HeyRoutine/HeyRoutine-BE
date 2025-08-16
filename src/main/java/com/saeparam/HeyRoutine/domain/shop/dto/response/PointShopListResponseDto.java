@@ -17,7 +17,7 @@ public class PointShopListResponseDto {
   private Long price;
   private Long stock;
   private String imageUrl;
-
+  private String category;
   public static PointShopListResponseDto toDto(PointShop pointShop){
     return PointShopListResponseDto.builder()
             .id(pointShop.getId())
@@ -26,6 +26,7 @@ public class PointShopListResponseDto {
             .productName(pointShop.getProductName())
             .stock(pointShop.getStock())
             .imageUrl(pointShop.getImageUrl())
+            .category(pointShop.getCategory().toString())
             .build();
   }
 }

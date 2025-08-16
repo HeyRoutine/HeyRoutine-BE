@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.shop.controller;
 
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
+import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.service.PointShopService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
@@ -50,5 +51,11 @@ public class PointShopController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "물건 상세보기 API", description = "특정 물건의 상세 정보를 조회합니다.")
+    public ResponseEntity<?> getProductDetail(@PathVariable Long id) {
+        PointShopDetailResponseDto result = pointShopService.getProductDetail(id);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
 
 }
