@@ -1,6 +1,6 @@
 package com.saeparam.HeyRoutine.domain.test;
 
-import com.saeparam.HeyRoutine.global.aop.DistributedLock;
+import com.saeparam.HeyRoutine.global.common.aop.DistributedLock;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

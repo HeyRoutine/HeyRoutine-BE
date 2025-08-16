@@ -16,11 +16,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class BankAccountService {
 
-    public String accountRegistration(String token, String account) {
-
-        return "계좌등록이 완료되었습니다.";
-    }
-
     public String accountVerification(String token, String account) {
 
         return "인증";

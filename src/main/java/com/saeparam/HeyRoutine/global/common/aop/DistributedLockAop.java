@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.global.aop;
+package com.saeparam.HeyRoutine.global.common.aop;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class DistributedLockAop {
     private final RedissonClient redissonClient;
     private final AopForTransaction aopForTransaction;
 
-    @Around("@annotation(com.saeparam.HeyRoutine.global.aop.DistributedLock)")
+    @Around("@annotation(com.saeparam.HeyRoutine.global.common.aop.DistributedLock)")
     public Object lock(final ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
