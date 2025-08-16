@@ -41,6 +41,9 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private String bankAccount;
 
+  @Column
+  private Long point;
+
 
 
   @ElementCollection(fetch = FetchType.EAGER)

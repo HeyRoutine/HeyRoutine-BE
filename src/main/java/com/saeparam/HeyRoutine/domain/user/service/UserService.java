@@ -80,6 +80,8 @@ public class UserService {
         // 1. username + password 를 기반으로 Authentication 객체 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         try {
+            System.out.println(password);
+
             // 2. 실제 검증. authenticate() 메서드를 통해 요청된 Master 에 대한 검증 진행
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
