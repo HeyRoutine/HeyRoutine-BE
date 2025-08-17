@@ -34,7 +34,6 @@ public class PointShopController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
-
     @PostMapping()
     @Operation(summary = "물건 등록하기 API", description = "포인트샵에 물건을 등록합니다")
     public ResponseEntity<?> postProduct(@RequestBody PointShopPostRequestDto pointShopPostRequestDto) {
@@ -55,6 +54,15 @@ public class PointShopController {
     @Operation(summary = "물건 상세보기 API", description = "특정 물건의 상세 정보를 조회합니다.")
     public ResponseEntity<?> getProductDetail(@PathVariable Long id) {
         PointShopDetailResponseDto result = pointShopService.getProductDetail(id);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    @PostMapping("/buy/{id}")
+    @Operation(summary = "물건 결제하기 API", description = "물건을 결제합니다.")
+    public ResponseEntity<?> buyProduct(@RequestHeader("Authorization") String token,@PathVariable Long id) {
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+
+        String result=pointShopService.buyProduct("shop"+id,email,id);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

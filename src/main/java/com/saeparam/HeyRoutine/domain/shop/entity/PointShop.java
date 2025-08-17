@@ -35,9 +35,7 @@ public class PointShop extends BaseTime {
     @Column(columnDefinition = "TEXT")
     private String imageUrl;
 
-
-
-
-
-
+    public void minusStock() {
+        this.stock = --stock;
+    }
 }
