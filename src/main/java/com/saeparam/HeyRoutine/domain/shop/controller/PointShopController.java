@@ -3,6 +3,7 @@ package com.saeparam.HeyRoutine.domain.shop.controller;
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
+import com.saeparam.HeyRoutine.domain.shop.enums.PointShopCategory;
 import com.saeparam.HeyRoutine.domain.shop.service.PointShopService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
@@ -49,6 +50,14 @@ public class PointShopController {
         List<PointShopListResponseDto> result=pointShopService.shopList(pageable);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
+    @GetMapping("/list/{category}")
+    @Operation(summary = "물건 전체보기 API", description = "물건 전체를 조회합니다.")
+    public ResponseEntity<?> shopCategoryList( @PageableDefault(size = 10, sort = "stock") Pageable pageable,@PathVariable PointShopCategory category) {
+
+        List<PointShopListResponseDto> result=pointShopService.shopCategoryList(pageable,category);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
 
     @GetMapping("/{id}")
     @Operation(summary = "물건 상세보기 API", description = "특정 물건의 상세 정보를 조회합니다.")

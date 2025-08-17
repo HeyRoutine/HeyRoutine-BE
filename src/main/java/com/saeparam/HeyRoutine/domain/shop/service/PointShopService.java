@@ -5,6 +5,7 @@ import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.entity.PointShop;
+import com.saeparam.HeyRoutine.domain.shop.enums.PointShopCategory;
 import com.saeparam.HeyRoutine.domain.shop.repository.PointShopRepository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
@@ -43,6 +44,12 @@ public class PointShopService {
     public List<PointShopListResponseDto> shopList(Pageable pageable) {
         Page<PointShop> productList = pointShopRepository.findAll(pageable);
         return productList.map(PointShopListResponseDto::toDto).stream().toList();
+    }
+
+    public List<PointShopListResponseDto> shopCategoryList(Pageable pageable, PointShopCategory category) {
+        Page<PointShop> product = pointShopRepository.findByCategory(category,pageable);
+        return product.map(PointShopListResponseDto::toDto).stream().toList();
+
     }
 
     public PointShopDetailResponseDto getProductDetail(Long productId) {
