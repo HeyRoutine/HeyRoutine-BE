@@ -35,6 +35,12 @@ public class User extends BaseTime implements UserDetails {
   @Column(nullable = false, unique = true)
   private String nickname;
 
+  @Column
+  private String profileImage;
+
+  @Column
+  private String bankAccount;
+
 
 
   @ElementCollection(fetch = FetchType.EAGER)

@@ -120,5 +120,8 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
+    // 탈퇴
+
+
 
 }
