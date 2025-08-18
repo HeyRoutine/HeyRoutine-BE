@@ -29,6 +29,7 @@ public class SignUpDto {
                 .password(encodedPassword)
                 .nickname(signUpDto.getNickname())
                 .profileImage(signUpDto.getProfileImage())
+                .point(0L)
                 .roles(signUpDto.getRoles())
                 .build();
     }

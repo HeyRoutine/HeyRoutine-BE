@@ -42,7 +42,14 @@ public enum ErrorStatus implements BaseErrorCode {
     // mail 응답
     MAIL_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL5000", "이메일 전송에 에러가 발생했습니다."),
     MAIL_NUMBER_IS_NULL(HttpStatus.BAD_REQUEST,"MAIL4000","인증번호를 입력해주세요"),
-    MAIL_NUMBER_IS_NOT_MATCH(HttpStatus.BAD_REQUEST,"MAIL4000","인증번호가 틀렸습니다");
+    MAIL_NUMBER_IS_NOT_MATCH(HttpStatus.BAD_REQUEST,"MAIL4000","인증번호가 틀렸습니다"),
+
+    // shop 응답
+    PRODUCT_NOT_FOUND(HttpStatus.BAD_REQUEST,"SHOP4000","해당 ID의 상품을 찾을 수 없습니다: "),
+    STOCK_IS_NULL(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5000", "재고가 부족합니다"),
+    USER_POINT_LACK(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5001", "유저의 포인트가 부족합니다")
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String code;

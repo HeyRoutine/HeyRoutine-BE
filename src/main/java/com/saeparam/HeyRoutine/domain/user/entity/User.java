@@ -41,6 +41,9 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private String bankAccount;
 
+  @Column
+  private Long point;
+
 
 
   @ElementCollection(fetch = FetchType.EAGER)
@@ -67,6 +70,15 @@ public class User extends BaseTime implements UserDetails {
             .anyMatch(auth -> auth.getAuthority().equals(role.getRoleName()));
   }
 
+
+
+  // 유저의 포인트 차감
+  public void usePoints(Long price) {
+    this.point=this.point-price;
+  }
+
+
+
   @Override
   public String getUsername() {
     return this.email;
@@ -91,5 +103,6 @@ public class User extends BaseTime implements UserDetails {
   public boolean isEnabled() {
     return true;
   }
+
 
 }
