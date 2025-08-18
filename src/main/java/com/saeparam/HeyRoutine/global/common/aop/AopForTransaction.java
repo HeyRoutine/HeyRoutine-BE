@@ -1,4 +1,4 @@
-package com.saeparam.HeyRoutine.global.aop;
+package com.saeparam.HeyRoutine.global.common.aop;
 
 
 import org.aspectj.lang.ProceedingJoinPoint;
