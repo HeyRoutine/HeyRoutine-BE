@@ -52,6 +52,8 @@ public class WebClientBankUtil {
         String transmissionDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String transmissionTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
 
+        System.out.println(transmissionDate+"제작날짜");
+        System.out.println(transmissionTime+"제작시간");
         // 3. 고유번호의 앞 14자리를 생성합니다.
         String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 

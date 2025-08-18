@@ -38,13 +38,16 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private String profileImage;
 
+  //우리가 만들어준 계좌
   @Column
   private String bankAccount;
 
   @Column
   private Long point;
 
-
+  public void setBankAccount(String bankAccount) {
+    this.bankAccount = bankAccount;
+  }
 
   @ElementCollection(fetch = FetchType.EAGER)
   @Builder.Default
