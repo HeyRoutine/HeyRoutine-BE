@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+
+/**
+ * 개인 루틴리스트 만들기 Request
+ */
 @Getter
 @ToString
 @AllArgsConstructor

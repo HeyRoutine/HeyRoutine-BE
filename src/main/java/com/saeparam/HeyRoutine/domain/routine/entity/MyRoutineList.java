@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -46,6 +47,8 @@ public class MyRoutineList extends BaseTime {
     @Column(name = "routine_type", nullable = false)
     private RoutineType routineType;
 
+    @OneToMany(mappedBy = "routineList", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<MyRoutineDays> routineDays;
 
 
 
