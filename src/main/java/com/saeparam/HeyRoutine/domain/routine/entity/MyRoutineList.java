@@ -21,7 +21,6 @@ import java.util.Set;
 @Builder
 public class MyRoutineList extends BaseTime {
 
-    //집 나무 사람2개
     @Column(name = "my_routine_list_id", updatable = false, unique = true, nullable = false)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

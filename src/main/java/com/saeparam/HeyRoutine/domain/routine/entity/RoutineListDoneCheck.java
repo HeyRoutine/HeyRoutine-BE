@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoutineListDoneCheck extends BaseTime { // BaseTime 클래스를 상속받아 생성/수정 시간을 기록합니다.
+public class RoutineListDoneCheck extends BaseTime {
 
     @Column(name = "my_routine_list_done_check_id", updatable = false, unique = true, nullable = false)
     @Id

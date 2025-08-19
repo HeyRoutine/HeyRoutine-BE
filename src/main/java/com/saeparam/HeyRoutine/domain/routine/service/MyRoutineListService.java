@@ -2,27 +2,20 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 
 
 import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
-import com.saeparam.HeyRoutine.domain.routine.entity.MyRoutineDays;
-import com.saeparam.HeyRoutine.domain.routine.entity.MyRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
-import com.saeparam.HeyRoutine.domain.routine.repository.MyRoutineDaysRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.MyRoutineListRepository;
-import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
-import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
-import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
-import com.saeparam.HeyRoutine.domain.shop.entity.PointShop;
-import com.saeparam.HeyRoutine.domain.shop.enums.PointShopCategory;
-import com.saeparam.HeyRoutine.domain.shop.repository.PointShopRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.*;
+
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
-import com.saeparam.HeyRoutine.global.common.aop.DistributedLock;
-import com.saeparam.HeyRoutine.global.error.handler.ShopHandler;
+
+import com.saeparam.HeyRoutine.global.error.handler.RoutineHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +32,9 @@ public class MyRoutineListService {
     private final MyRoutineListRepository myRoutineListRepository;
     private final UserRepository userRepository;
     private final MyRoutineDaysRepository myRoutineDaysRepository;
+    private final MyRoutineMiddleRepository myRoutineMiddleRepository;
+    private final EmojiRepository emojiRepository;
+    private final RoutineRepository routineRepository;
 
     @Transactional
     public String makeMyRoutineList(String email, MyRoutineListMakeRequestDto myRoutineListMakeRequestDto) {
@@ -62,5 +58,26 @@ public class MyRoutineListService {
         List<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,localDateTime,pageable);
 
         return myRoutineList.stream().map(MyRoutineListResponseDto::toDto).collect(Collectors.toList());
+    }
+
+
+    public String makeRoutineToMyRoutineList(String email, Long id, RoutineRequestDto routineRequestDto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        // 루틴리스트 권한 확인
+        if (myRoutineList.getUser()!=user){
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+        Routine routine=routineRepository.save(RoutineRequestDto.toEntity(routineRequestDto,emoji));
+        myRoutineMiddleRepository.save(MyRoutineMiddle.builder()
+                        .routineList(myRoutineList)
+                        .routine(routine)
+                .build());
+
+        return "루틴이 저장되었습니다";
     }
 }
