@@ -41,6 +41,8 @@ class UserSignupListener {
         webClientBankUtil.makeUserAccount(email, BankUserMakeRequestDto.class, BankUserMakeResponseDto.class)
                 .flatMap(userResponse -> {
                     String userKey = userResponse.getUserKey();
+                    userAccountUpdater.updateUserKey(email, userKey);
+
                     log.info("은행 계정 생성 성공! UserKey: {}", userKey);
                     return webClientBankUtil.createDemandDepositAccount(
                             userKey,

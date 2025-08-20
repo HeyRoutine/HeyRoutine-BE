@@ -31,4 +31,13 @@ class UserAccountUpdater {
         // @Transactional에 의해 메서드 종료 시 변경된 내용이 자동으로 DB에 반영됩니다.
         log.info("{} 사용자의 계좌번호가 DB에 저장되었습니다.", email);
     }
+
+    @Transactional
+
+    public void updateUserKey(String email, String userKey) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setUserKey(userKey);
+
+    }
 }

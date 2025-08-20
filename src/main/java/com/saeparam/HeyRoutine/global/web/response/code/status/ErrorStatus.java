@@ -47,8 +47,11 @@ public enum ErrorStatus implements BaseErrorCode {
     // shop 응답
     PRODUCT_NOT_FOUND(HttpStatus.BAD_REQUEST,"SHOP4000","해당 ID의 상품을 찾을 수 없습니다: "),
     STOCK_IS_NULL(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5000", "재고가 부족합니다"),
-    USER_POINT_LACK(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5001", "유저의 포인트가 부족합니다")
+    USER_POINT_LACK(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5001", "유저의 포인트가 부족합니다"),
 
+    // 루틴관련 응답
+    MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
+    EMOJI_NOT_FOUND(HttpStatus.BAD_REQUEST,"EMOJI4000","해당 이모지를 찾을 수 업습니다. ")
     ;
 
     private final HttpStatus httpStatus;

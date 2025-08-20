@@ -42,8 +42,20 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private String bankAccount;
 
+  // 금융 API 계정
+  @Column
+  private String userKey;
+
+  // 1원 계좌인증 상태
+  @Column
+  private boolean accountCertificationStatus;
+
   @Column
   private Long point;
+
+  public void setUserKey(String userKey) {
+    this.userKey = userKey;
+  }
 
   public void setBankAccount(String bankAccount) {
     this.bankAccount = bankAccount;
