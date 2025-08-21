@@ -51,7 +51,21 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 루틴관련 응답
     MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
-    EMOJI_NOT_FOUND(HttpStatus.BAD_REQUEST,"EMOJI4000","해당 이모지를 찾을 수 업습니다. ")
+    EMOJI_NOT_FOUND(HttpStatus.NOT_FOUND,"ROUTINE4001","해당 이모지를 찾을 수 없습니다."),
+    ROUTINE_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4002", "해당 루틴 템플릿이 존재하지 않습니다."),
+    GROUP_ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4003", "해당 단체루틴이 존재하지 않습니다."),
+    SUB_ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4004", "해당 상세루틴이 존재하지 않습니다."),
+    GUESTBOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4005", "해당 방명록이 존재하지 않습니다."),
+
+    ALREADY_JOINED_ROUTINE(HttpStatus.CONFLICT, "ROUTINE4091", "이미 가입된 단체루틴입니다."),
+
+    INVALID_TIME_FORMAT(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4221", "시간 형식이 올바르지 않습니다. HH:mm 형식으로 입력해주세요."),
+    INVALID_ROUTINE_TYPE(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4222", "루틴 타입은 DAILY 또는 FINANCE만 가능합니다."),
+    INVALID_DAY_OF_WEEK(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4223", "요일 데이터가 중복되거나 올바르지 않습니다."),
+    INVALID_CATEGORY(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4224", "카테고리 형식이 올바르지 않습니다."),
+
+    GUESTBOOK_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4031", "본인이 작성한 방명록만 수정/삭제할 수 있습니다."),
+    ROUTINE_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "루틴 관리자만 수정/삭제할 수 있습니다.")
     ;
 
     private final HttpStatus httpStatus;
