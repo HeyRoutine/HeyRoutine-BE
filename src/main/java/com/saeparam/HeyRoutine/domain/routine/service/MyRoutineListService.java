@@ -76,7 +76,7 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String makeRoutineToMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
+    public String makeRoutineInMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
@@ -111,7 +111,7 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String updateRoutineToMyRoutineList(UUID userId, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
+    public String updateMyRoutineList(UUID userId, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
@@ -126,7 +126,7 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String deleteRoutineToMyRoutineList(UUID userId, Long id) {
+    public String deleteMyRoutineList(UUID userId, Long id) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
@@ -137,5 +137,34 @@ public class MyRoutineListService {
         myRoutineListRepository.delete(myRoutineList);
 
         return "삭제 됐습니다.";
+    }
+
+    @Transactional
+    public String updateInMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        Routine routine=routineRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+        Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+        if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        routine.update(routineRequestDto,emoji);
+
+        return "루틴이 수정되었습니다.";
+    }
+
+    @Transactional
+    public String deleteInMyRoutineList(UUID userId, Long routineId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        Routine routine=routineRepository.findById(routineId)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+        if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        routineRepository.delete(routine);
+        return "루틴이 삭제되었습니다.";
     }
 }

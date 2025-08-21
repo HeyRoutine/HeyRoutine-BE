@@ -40,18 +40,22 @@ public class MyRoutineListController {
      * 개인루틴 리스트 수정
      * id = 개인루틴리스트 id
      */
-    @PatchMapping("/list/{id}")
+    @PatchMapping("/list/{myRoutineListId}")
     @Operation(summary = "개인루틴 리스트 수정 API", description = "개인루틴 리스트를 수정합니다.")
-    public ResponseEntity<?> updateRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody MyRoutineListRequestDto myRoutineListRequestDto){
+    public ResponseEntity<?> updateRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId, @RequestBody MyRoutineListRequestDto myRoutineListRequestDto){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateRoutineToMyRoutineList(userId,id, myRoutineListRequestDto)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateMyRoutineList(userId,myRoutineListId, myRoutineListRequestDto)));
     }
 
-    @DeleteMapping("/list/{id}")
+    /**
+     * 개인루틴 리스트 삭
+     * id = 개인루틴리스트 id
+     */
+    @DeleteMapping("/list/{myRoutineListId}")
     @Operation(summary = "개인루틴 리스트 삭제 API", description = "개인루틴 리스트를 삭제합니다.")
-    public ResponseEntity<?> deleteRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id){
+    public ResponseEntity<?> deleteRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.deleteRoutineToMyRoutineList(userId,id)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.deleteMyRoutineList(userId,myRoutineListId)));
     }
 
     /**
@@ -70,22 +74,44 @@ public class MyRoutineListController {
      * 개인루틴 리스트 안 루틴 만들기
      * id = 개인루틴리스트 id
      */
-    @PostMapping("/list/routine/{id}")
+    @PostMapping("/list/routine/{myRoutineListId}")
     @Operation(summary = "개인루틴 리스트안에 루틴만들기 API", description = "개인루틴 리스트안에 루틴을 만듭니다.")
-    public ResponseEntity<?> makeRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody RoutineRequestDto routineRequestDto){
+    public ResponseEntity<?> makeRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId, @RequestBody RoutineRequestDto routineRequestDto){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineToMyRoutineList(userId,id,routineRequestDto)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineInMyRoutineList(userId,myRoutineListId,routineRequestDto)));
     }
 
     /**
      * 개인루틴 리스트 안 전체 루틴 반환
      * id = 개인루틴리스트 id
      */
-    @GetMapping("/list/routine/{id}")
+    @GetMapping("/list/routine/{myRoutineListId}")
     @Operation(summary = "개인루틴 리스트 안 루틴 전체조회 API", description = "개인루틴 리스트 안 루틴들을 전체 반환합니다")
-    public ResponseEntity<?> showRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long id){
+    public ResponseEntity<?> showRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long myRoutineListId){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showRoutineInMyRoutineList(userId,id)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showRoutineInMyRoutineList(userId,myRoutineListId)));
+    }
+
+    /**
+     * 개인루틴 리스트 안 전체 루틴 수정
+     * id = 루틴Id
+     */
+    @PatchMapping("/list/routine/{routineId}")
+    @Operation(summary = "개인루틴 리스트 안 루틴 수정 API", description = "개인루틴 리스트 안 루틴 수정")
+    public ResponseEntity<?> updateRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long routineId,@RequestBody RoutineRequestDto routineRequestDto){
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateInMyRoutineList(userId,routineId,routineRequestDto)));
+    }
+
+    /**
+     * 개인루틴 리스트 안 전체 루틴 삭제
+     * id = 루틴Id
+     */
+    @DeleteMapping("/list/routine/{routineId}")
+    @Operation(summary = "개인루틴 리스트 안 루틴 삭제 API", description = "개인루틴 리스트 안 루틴 삭제")
+    public ResponseEntity<?> deleteRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long routineId){
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.deleteInMyRoutineList(userId,routineId)));
     }
 
 
