@@ -19,10 +19,48 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Tag(name = "Routine-Group", description = "단체 루틴 관련 API")
+
+
+/**
+ * <h2>GroupRoutineController</h2>
+ * <p>
+ * 단체 루틴(Group Routine) 관련 API 요청을 처리하는 컨트롤러입니다. <br>
+ * 클라이언트의 HTTP 요청을 받아 비즈니스 로직을 {@link GroupRoutineService}에 위임하고, 처리 결과를 {@link ApiResponse} 형태로 반환합니다.
+ * </p>
+ *
+ * <pre>
+ * ┌────────────────┐      ┌──────────────────────────┐      ┌─────────────────────┐
+ * │    Client      │◄───► │  GroupRoutineController  │◄───►│  GroupRoutineService  │
+ * └────────────────┘      └──────────────────────────┘      └─────────────────────┘
+ * </pre>
+ *
+ * <h3>담당 API 목록</h3>
+ * <pre>
+ * ┌───────────────────────────────────────────────────────────────────────────────────────────┐
+ * │                                       API Endpoints                                       │
+ * ├───────────────────────────────────────────────────────────────────────────────────────────┤
+ * │ [GET]    /api/v1/routines/groups           : 단체 루틴 목록 조회 (페이징)                     │
+ * │ [POST]   /api/v1/routines/groups           : 단체 루틴 생성                                 │
+ * │ [GET]    /api/v1/routines/groups/{id}      : 단체 루틴 상세 조회                             │
+ * │ [PUT]    /api/v1/routines/groups/{id}      : 단체 루틴 수정                                 │
+ * │ [DELETE] /api/v1/routines/groups/{id}      : 단체 루틴 삭제                                 │
+ * │ [POST]   /api/v1/routines/groups/{id}/join : 단체 루틴 참여                                 │
+ * │                                                                                           │
+ * │ [POST]   /api/v1/routines/groups/{id}/sub-routines : 상세 루틴 생성                         │
+ * │ [PUT]    /api/v1/routines/groups/{id}/sub-routines : 상세 루틴 수정                         │
+ * │ [DELETE] /api/v1/routines/groups/{id}/sub-routines/{routineId} : 상세 루틴 삭제             │
+ * │ [PATCH]  /api/v1/routines/groups/{id}/status/{routineId} : 상세 루틴 상태 변경               │
+ * │                                                                                           │
+ * │ [GET]    /api/v1/routines/groups/{id}/guestbooks : 방명록 조회 (페이징)                      │
+ * │ [POST]   /api/v1/routines/groups/{id}/guestbooks : 방명록 작성                              │
+ * │ [DELETE] /api/v1/routines/groups/{id}/guestbooks/{guestbookId} : 방명록 삭제                │
+ * └───────────────────────────────────────────────────────────────────────────────────────────┘
+ * </pre>
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/routines/groups")
+@Tag(name = "Routine-Group", description = "단체 루틴 관련 API")
 public class GroupRoutineController {
 
     private final GroupRoutineService groupRoutineService;
