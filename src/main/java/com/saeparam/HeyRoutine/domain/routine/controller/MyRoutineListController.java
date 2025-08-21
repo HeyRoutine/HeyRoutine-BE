@@ -59,5 +59,11 @@ public class MyRoutineListController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineToMyRoutineList(email,id,routineRequestDto)));
     }
 
-    //TODO 개인루틴 리스트 안 루틴 모두 보기
+    @GetMapping("/list/{id}")
+    @Operation(summary = "개인루틴 리스트 안 루틴 전체조회 API", description = "개인루틴 리스트 안 루틴들을 전체 반환합니다")
+    public ResponseEntity<?> showRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long id){
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showRoutineInMyRoutineList(email,id)));
+    }
+
 }

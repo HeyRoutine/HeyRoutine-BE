@@ -4,6 +4,7 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.repository.*;
@@ -79,5 +80,18 @@ public class MyRoutineListService {
                 .build());
 
         return "루틴이 저장되었습니다";
+    }
+
+    public List<RoutineResponseDto> showRoutineInMyRoutineList(String email, Long id) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (myRoutineList.getUser()!=(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        List<Routine> routines = routineRepository.findAllByRoutineListId(id);
+
+        return routines.stream().map(RoutineResponseDto::toDto).collect(Collectors.toList());
     }
 }
