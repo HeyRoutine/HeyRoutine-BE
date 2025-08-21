@@ -1,20 +1,13 @@
 package com.saeparam.HeyRoutine.domain.routine.controller;
 
-import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
-import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.service.EmojiService;
-import com.saeparam.HeyRoutine.domain.routine.service.MyRoutineListService;
-import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor

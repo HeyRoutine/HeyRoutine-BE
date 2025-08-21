@@ -127,6 +127,7 @@ public class UserService {
         return user.getNickname();
     }
 
+    @Transactional
     public String checkEmailDuplicate(String email) {
         // 이메일 중복체크
         if (userRepository.existsByEmail(email)) {
@@ -136,6 +137,7 @@ public class UserService {
 
     }
 
+    @Transactional
     public String checknicknameDuplicate(String nickname) {
         // 닉네임 중복체크
         if (userRepository.existsByNickname(nickname)) {

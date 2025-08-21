@@ -1,15 +1,13 @@
 package com.saeparam.HeyRoutine.domain.routine.controller;
 
-import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
-import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.service.MyRoutineListService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,14 +24,33 @@ public class MyRoutineListController {
     private final MyRoutineListService myRoutineListService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    // TODO :  루틴삭제시 테스트
     /**
      * 개인루틴 리스트 만들기
      */
     @PostMapping("/list")
     @Operation(summary = "개인루틴 리스트 만들기 API", description = "개인루틴 리스트를 만듭니다.")
-    public ResponseEntity<?> makeMyRoutineList(@RequestHeader("Authorization") String token,@RequestBody MyRoutineListMakeRequestDto myRoutineListMakeRequestDto){
+    public ResponseEntity<?> makeMyRoutineList(@RequestHeader("Authorization") String token,@RequestBody MyRoutineListRequestDto myRoutineListRequestDto){
         String email = jwtTokenProvider.getEmail(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeMyRoutineList(email,myRoutineListMakeRequestDto)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeMyRoutineList(email, myRoutineListRequestDto)));
+    }
+
+    /**
+     * 개인루틴 리스트 수정
+     * id = 개인루틴리스트 id
+     */
+    @PatchMapping("/list/{id}")
+    @Operation(summary = "개인루틴 리스트 수정 API", description = "개인루틴 리스트를 수정합니다.")
+    public ResponseEntity<?> updateRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody MyRoutineListRequestDto myRoutineListRequestDto){
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateRoutineToMyRoutineList(email,id, myRoutineListRequestDto)));
+    }
+
+    @DeleteMapping("/list/{id}")
+    @Operation(summary = "개인루틴 리스트 삭제 API", description = "개인루틴 리스트를 삭제합니다.")
+    public ResponseEntity<?> deleteRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id){
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.deleteRoutineToMyRoutineList(email,id)));
     }
 
     /**
@@ -51,13 +67,26 @@ public class MyRoutineListController {
 
     /**
      * 개인루틴 리스트 안 루틴 만들기
+     * id = 개인루틴리스트 id
      */
-    @PostMapping("/list/{id}")
+    @PostMapping("/list/routine/{id}")
     @Operation(summary = "개인루틴 리스트안에 루틴만들기 API", description = "개인루틴 리스트안에 루틴을 만듭니다.")
     public ResponseEntity<?> makeRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody RoutineRequestDto routineRequestDto){
         String email = jwtTokenProvider.getEmail(token.substring(7));
         return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineToMyRoutineList(email,id,routineRequestDto)));
     }
 
-    //TODO 개인루틴 리스트 안 루틴 모두 보기
+    /**
+     * 개인루틴 리스트 안 전체 루틴 반환
+     * id = 개인루틴리스트 id
+     */
+    @GetMapping("/list/routine/{id}")
+    @Operation(summary = "개인루틴 리스트 안 루틴 전체조회 API", description = "개인루틴 리스트 안 루틴들을 전체 반환합니다")
+    public ResponseEntity<?> showRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long id){
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showRoutineInMyRoutineList(email,id)));
+    }
+
+
+
 }

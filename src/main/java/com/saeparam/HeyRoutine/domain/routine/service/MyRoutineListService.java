@@ -1,9 +1,10 @@
 package com.saeparam.HeyRoutine.domain.routine.service;
 
 
-import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.repository.*;
@@ -21,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,22 +39,41 @@ public class MyRoutineListService {
     private final EmojiRepository emojiRepository;
     private final RoutineRepository routineRepository;
 
+
+
+
     @Transactional
-    public String makeMyRoutineList(String email, MyRoutineListMakeRequestDto myRoutineListMakeRequestDto) {
+    public MyRoutineListResponseDto makeMyRoutineList(String email, MyRoutineListRequestDto myRoutineListRequestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        MyRoutineList myRoutineList = MyRoutineListMakeRequestDto.toEntity(myRoutineListMakeRequestDto, user);
+        MyRoutineList myRoutineList = MyRoutineListRequestDto.toEntity(myRoutineListRequestDto, user);
         myRoutineListRepository.save(myRoutineList);
-        for (DayType day : myRoutineListMakeRequestDto.getDayTypes()) {
+
+
+//        if (myRoutineListRequestDto.getDayTypes() != null) {
+//            myRoutineListRequestDto.getDayTypes().stream()
+//                    .map(dayType -> MyRoutineDays.builder().dayType(dayType).build())
+//                    .forEach(myRoutineList::addRoutineDay);
+//        }
+
+        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
+        Set<DayType> dayTypeSet=new HashSet<>();
+        for (DayType day : myRoutineListRequestDto.getDayTypes()) {
             myRoutineDaysRepository.save(MyRoutineDays.builder()
                     .routineList(myRoutineList)
                     .dayType(day)
                     .build());
+            dayTypeSet.add(day);
         }
+//        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
 
-        return "리스트가 저장되었습니다";
+        MyRoutineListResponseDto myRoutineListResponseDto=MyRoutineListResponseDto.toDto(myRoutineList);
+        myRoutineListResponseDto.setDayTypes(dayTypeSet);
+        return myRoutineListResponseDto;
+
     }
 
+    @Transactional(readOnly = true)
     public List<MyRoutineListResponseDto> showMyRoutineList(String email, DayType day, LocalDateTime localDateTime,Pageable pageable) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -60,14 +82,14 @@ public class MyRoutineListService {
         return myRoutineList.stream().map(MyRoutineListResponseDto::toDto).collect(Collectors.toList());
     }
 
-
+    @Transactional
     public String makeRoutineToMyRoutineList(String email, Long id, RoutineRequestDto routineRequestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
         // 루틴리스트 권한 확인
-        if (myRoutineList.getUser()!=user){
+        if (!myRoutineList.getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
@@ -79,5 +101,48 @@ public class MyRoutineListService {
                 .build());
 
         return "루틴이 저장되었습니다";
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoutineResponseDto> showRoutineInMyRoutineList(String email, Long id) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (!myRoutineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        List<Routine> routines = routineRepository.findAllByRoutineListId(id);
+
+        return routines.stream().map(RoutineResponseDto::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String updateRoutineToMyRoutineList(String email, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (!myRoutineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        myRoutineList.update(myRoutineListRequestDto);
+        return "수정 됐습니다.";
+
+
+    }
+
+    @Transactional
+    public String deleteRoutineToMyRoutineList(String email, Long id) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (!myRoutineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        myRoutineListRepository.delete(myRoutineList);
+
+        return "삭제 됐습니다.";
     }
 }
