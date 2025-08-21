@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
@@ -22,9 +23,9 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(of = "id")
 public class User extends BaseTime implements UserDetails {
   @Id
-  @GeneratedValue
-  @Column(name = "user_id", updatable = false, unique = true, nullable = false)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "user_id", updatable = false, unique = true, nullable = false, columnDefinition = "BINARY(16)")
+  private UUID id;
 
   @Column(nullable = false)
   private String email;

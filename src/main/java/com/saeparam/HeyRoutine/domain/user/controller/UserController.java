@@ -2,6 +2,7 @@ package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 
+import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
 import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -106,8 +109,18 @@ public class UserController {
     @PatchMapping("/mypage-password")
     @Operation(summary = "비밀번호 재설정 API", description = "비밀번호를 재설정합니다.")
     public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,@RequestParam("password") String password) {
-        String email = jwtTokenProvider.getEmail(token.substring(7));
-        String result=userService.mypageResetPassword(email,password);
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.mypageResetPassword(userId,password);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 비밀번호 찾기에서 비밀번호 설정
+     */
+    @PatchMapping("/password")
+    @Operation(summary = "비밀번호 찾기 API", description = "비밀번호를 찾습니다.")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+        String result=userService.resetPassword(resetPasswordDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
@@ -115,8 +128,8 @@ public class UserController {
     @PatchMapping("/mypage-nickname")
     @Operation(summary = "닉네임 재설정 API", description = "닉네임을 재설정합니다.")
     public ResponseEntity<?> resetNickname(@RequestHeader("Authorization") String token,@RequestParam("nickname") String nickname) {
-        String email = jwtTokenProvider.getEmail(token.substring(7));
-        String result=userService.mypageResetNickname(email,nickname);
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.mypageResetNickname(userId,nickname);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

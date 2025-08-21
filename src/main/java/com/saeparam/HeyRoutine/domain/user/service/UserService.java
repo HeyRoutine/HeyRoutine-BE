@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -48,7 +49,6 @@ public class UserService {
         // 1. username + password 를 기반으로 Authentication 객체 생성
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         try {
-            System.out.println(password);
 
             // 2. 실제 검증. authenticate() 메서드를 통해 요청된 Master 에 대한 검증 진행
             Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
@@ -121,8 +121,8 @@ public class UserService {
         return jwtToken;
     }
 
-    public String findByNickname(String email) {
-        User user = userRepository.findByEmail(email)
+    public String findByNickname(UUID userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         return user.getNickname();
     }
@@ -162,8 +162,8 @@ public class UserService {
     }
 
     @Transactional
-    public String mypageResetPassword(String email, String password) {
-        User user = userRepository.findByEmail(email)
+    public String mypageResetPassword(UUID userId, String password) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         String encodedPassword = passwordEncoder.encode(password);
         user.setPassword(encodedPassword);
@@ -173,14 +173,14 @@ public class UserService {
     /**
      * 닉네임 변경
      *
-     * @param email
+     * @param userId
      * @param nickname
      * @return
      */
 
     @Transactional
-    public String mypageResetNickname(String email, String nickname) {
-        User user = userRepository.findByEmail(email)
+    public String mypageResetNickname(UUID userId, String nickname) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         if (userRepository.existsByNickname(nickname)) {
             throw new UserHandler(ErrorStatus.USER_NICKNAME_IN_USE);

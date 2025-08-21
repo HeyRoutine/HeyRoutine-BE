@@ -19,10 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -107,10 +104,12 @@ public class JwtTokenProvider {
                     .build()
                     .parseClaimsJws(token);
             return true;
+        }catch (SignatureException e){
+            throw new TokenHandler(ErrorStatus.TOKEN_SIGNATURE_INVALID);
         } catch (SecurityException | MalformedJwtException e) {
-            throw new TokenHandler(ErrorStatus.ACCESS_TOKEN_INVALID);
+            throw new TokenHandler(ErrorStatus.TOKEN_SIGNATURE_INVALID);
         } catch (ExpiredJwtException e) {
-            throw new TokenHandler(ErrorStatus.ACCESS_TOKEN_EXPIRED);
+            throw new TokenHandler(ErrorStatus.TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
             throw new TokenHandler(ErrorStatus.UNSUPPORTED_JWT_TOKEN);
         } catch (IllegalArgumentException e) {
@@ -132,14 +131,15 @@ public class JwtTokenProvider {
         }
     }
 
-    public String getEmail(String token) {
-
-        return Jwts.parserBuilder()
+    public UUID getUserId(String token) {
+        String userIdString = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+
+        return UUID.fromString(userIdString);
     }
 
 }
