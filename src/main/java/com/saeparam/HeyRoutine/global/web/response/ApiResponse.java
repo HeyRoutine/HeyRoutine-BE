@@ -31,6 +31,11 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, SuccessStatus.SUCCESS.getCode(), message, result);
     }
 
+    // noContent 응답 생성
+    public static <T> ApiResponse<T> noContent() {
+        return new ApiResponse<>(true, SuccessStatus.NO_CONTENT.getCode(), SuccessStatus.NO_CONTENT.getMessage(), null);
+    }
+
     public static <T> ApiResponse<T> of(BaseCode code, T result){
         return new ApiResponse<>(true, code.getReasonHttpStatus().getCode() , code.getReasonHttpStatus().getMessage(), result);
     }
