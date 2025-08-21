@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +38,8 @@ public class PointShopService {
     }
 
     @Transactional(readOnly = true)
-    public String mypoint(String email) {
-        User user = userRepository.findByEmail(email)
+    public String mypoint(UUID userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         return user.getPoint().toString();
     }
@@ -65,9 +66,9 @@ public class PointShopService {
 
 
     @DistributedLock(key = "#lockName")
-    public String buyProduct(String lockName,String email, Long productId) {
+    public String buyProduct(String lockName,UUID userId, Long productId) {
         // 1. 사용자 정보 조회
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         // 2. 상품 정보 조회

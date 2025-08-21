@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,20 +44,13 @@ public class MyRoutineListService {
 
 
     @Transactional
-    public MyRoutineListResponseDto makeMyRoutineList(String email, MyRoutineListRequestDto myRoutineListRequestDto) {
-        User user = userRepository.findByEmail(email)
+    public MyRoutineListResponseDto makeMyRoutineList(UUID userID, MyRoutineListRequestDto myRoutineListRequestDto) {
+        User user = userRepository.findById(userID)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList = MyRoutineListRequestDto.toEntity(myRoutineListRequestDto, user);
+
+
         myRoutineListRepository.save(myRoutineList);
-
-
-//        if (myRoutineListRequestDto.getDayTypes() != null) {
-//            myRoutineListRequestDto.getDayTypes().stream()
-//                    .map(dayType -> MyRoutineDays.builder().dayType(dayType).build())
-//                    .forEach(myRoutineList::addRoutineDay);
-//        }
-
-        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
         Set<DayType> dayTypeSet=new HashSet<>();
         for (DayType day : myRoutineListRequestDto.getDayTypes()) {
             myRoutineDaysRepository.save(MyRoutineDays.builder()
@@ -65,7 +59,6 @@ public class MyRoutineListService {
                     .build());
             dayTypeSet.add(day);
         }
-//        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
 
         MyRoutineListResponseDto myRoutineListResponseDto=MyRoutineListResponseDto.toDto(myRoutineList);
         myRoutineListResponseDto.setDayTypes(dayTypeSet);
@@ -74,8 +67,8 @@ public class MyRoutineListService {
     }
 
     @Transactional(readOnly = true)
-    public List<MyRoutineListResponseDto> showMyRoutineList(String email, DayType day, LocalDateTime localDateTime,Pageable pageable) {
-        User user = userRepository.findByEmail(email)
+    public List<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDateTime localDateTime,Pageable pageable) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         List<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,localDateTime,pageable);
 
@@ -83,8 +76,8 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String makeRoutineToMyRoutineList(String email, Long id, RoutineRequestDto routineRequestDto) {
-        User user = userRepository.findByEmail(email)
+    public String makeRoutineToMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
@@ -104,8 +97,8 @@ public class MyRoutineListService {
     }
 
     @Transactional(readOnly = true)
-    public List<RoutineResponseDto> showRoutineInMyRoutineList(String email, Long id) {
-        User user = userRepository.findByEmail(email)
+    public List<RoutineResponseDto> showRoutineInMyRoutineList(UUID userId, Long id) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
@@ -118,8 +111,8 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String updateRoutineToMyRoutineList(String email, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
-        User user = userRepository.findByEmail(email)
+    public String updateRoutineToMyRoutineList(UUID userId, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
@@ -133,8 +126,8 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String deleteRoutineToMyRoutineList(String email, Long id) {
-        User user = userRepository.findByEmail(email)
+    public String deleteRoutineToMyRoutineList(UUID userId, Long id) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));

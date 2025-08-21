@@ -9,13 +9,13 @@ import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,9 +29,9 @@ public class PointShopController {
     @GetMapping("/my-point")
     @Operation(summary = "내 포인트 조회 API", description = "내 포인트를 조회합니다.")
     public ResponseEntity<?> myPoint(@RequestHeader("Authorization") String token) {
-        String email = jwtTokenProvider.getEmail(token.substring(7));
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
-        String result=pointShopService.mypoint(email);
+        String result=pointShopService.mypoint(userId);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
@@ -69,9 +69,9 @@ public class PointShopController {
     @PostMapping("/buy/{id}")
     @Operation(summary = "물건 결제하기 API", description = "물건을 결제합니다.")
     public ResponseEntity<?> buyProduct(@RequestHeader("Authorization") String token,@PathVariable Long id) {
-        String email = jwtTokenProvider.getEmail(token.substring(7));
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
-        String result=pointShopService.buyProduct("shop"+id,email,id);
+        String result=pointShopService.buyProduct("shop"+id,userId,id);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

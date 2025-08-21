@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+//                        .requestMatchers("/**").hasRole("USER")
                         .requestMatchers("/**").permitAll()
 //                        .requestMatchers("/api/v1/master/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

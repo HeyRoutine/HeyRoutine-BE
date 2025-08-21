@@ -3,6 +3,8 @@ package com.saeparam.HeyRoutine.domain.user.dto.response;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @ToString
 @AllArgsConstructor
@@ -10,7 +12,7 @@ import lombok.*;
 @Builder
 public class UserDto {
 
-  private Long id;
+  private UUID id;
   private String username;
   private String nickname;
 
