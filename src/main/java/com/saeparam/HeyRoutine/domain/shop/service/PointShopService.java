@@ -30,28 +30,32 @@ public class PointShopService {
     private final PointShopRepository pointShopRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public String postProduct(PointShopPostRequestDto pointShopPostRequestDto) {
         pointShopRepository.save(PointShopPostRequestDto.toEntity(pointShopPostRequestDto));
         return "상품이 등록되었습니다.";
     }
 
+    @Transactional(readOnly = true)
     public String mypoint(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         return user.getPoint().toString();
     }
 
+    @Transactional(readOnly = true)
     public List<PointShopListResponseDto> shopList(Pageable pageable) {
         Page<PointShop> productList = pointShopRepository.findAll(pageable);
         return productList.map(PointShopListResponseDto::toDto).stream().toList();
     }
 
+    @Transactional(readOnly = true)
     public List<PointShopListResponseDto> shopCategoryList(Pageable pageable, PointShopCategory category) {
         Page<PointShop> product = pointShopRepository.findByCategory(category,pageable);
         return product.map(PointShopListResponseDto::toDto).stream().toList();
 
     }
-
+    @Transactional(readOnly = true)
     public PointShopDetailResponseDto getProductDetail(Long productId) {
         PointShop product = pointShopRepository.findById(productId)
                 .orElseThrow(() -> new ShopHandler(ErrorStatus.PRODUCT_NOT_FOUND));

@@ -31,6 +31,7 @@ public class EmojiService {
 
     private final EmojiRepository emojiRepository;
 
+    @Transactional(readOnly = true)
     public List<Emoji> showEmoji(Pageable pageable) {
         return emojiRepository.findAll(pageable).stream().toList();
     }

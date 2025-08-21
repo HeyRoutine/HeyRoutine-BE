@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Random;
 import java.util.UUID;
@@ -105,6 +106,7 @@ public class MailSendService {
      * @param authNum
      * @return
      */
+    @Transactional
     public String CheckAuthNum(String email, String authNum) {
         String code = (String) redisTemplate.opsForValue().get("MAIL:" + email);
         if (code == null) {
@@ -146,6 +148,7 @@ public class MailSendService {
         }
     }
 
+    @Transactional
     public String mailSendForPassword(String email) {
         userRepository.findByEmail(email)
                 .orElseThrow(()->new UserHandler(ErrorStatus.USER_NOT_FOUND));

@@ -53,6 +53,7 @@ public class MyRoutineListService {
         return "리스트가 저장되었습니다";
     }
 
+    @Transactional(readOnly = true)
     public List<MyRoutineListResponseDto> showMyRoutineList(String email, DayType day, LocalDateTime localDateTime,Pageable pageable) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -61,14 +62,14 @@ public class MyRoutineListService {
         return myRoutineList.stream().map(MyRoutineListResponseDto::toDto).collect(Collectors.toList());
     }
 
-
+    @Transactional
     public String makeRoutineToMyRoutineList(String email, Long id, RoutineRequestDto routineRequestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
         // 루틴리스트 권한 확인
-        if (myRoutineList.getUser()!=user){
+        if (!myRoutineList.getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
@@ -82,12 +83,13 @@ public class MyRoutineListService {
         return "루틴이 저장되었습니다";
     }
 
+    @Transactional(readOnly = true)
     public List<RoutineResponseDto> showRoutineInMyRoutineList(String email, Long id) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
-        if (myRoutineList.getUser()!=(user)) {
+        if (!myRoutineList.getUser().equals(user)) {
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         List<Routine> routines = routineRepository.findAllByRoutineListId(id);
