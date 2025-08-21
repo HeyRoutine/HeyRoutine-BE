@@ -24,6 +24,7 @@ public class MyRoutineListController {
     private final MyRoutineListService myRoutineListService;
     private final JwtTokenProvider jwtTokenProvider;
 
+    // TODO :  루틴삭제시 테스트
     /**
      * 개인루틴 리스트 만들기
      */
