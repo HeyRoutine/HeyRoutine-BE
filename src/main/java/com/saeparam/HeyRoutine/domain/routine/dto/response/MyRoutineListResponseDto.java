@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Setter
 public class MyRoutineListResponseDto {
     private Long id;
     private String title;
@@ -27,6 +29,7 @@ public class MyRoutineListResponseDto {
     private LocalTime endTime;
     private RoutineType routineType;
     private Set<DayType> dayTypes;
+
 
     public static MyRoutineListResponseDto toDto(MyRoutineList myRoutineList){
         Set<DayType> days = myRoutineList.getRoutineDays().stream()
