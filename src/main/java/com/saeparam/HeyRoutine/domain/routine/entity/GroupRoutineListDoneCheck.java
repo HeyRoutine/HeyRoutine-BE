@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.routine.entity;
 
 import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +10,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupRoutineListDoneCheck {
+public class GroupRoutineListDoneCheck extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

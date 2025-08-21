@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.routine.entity;
 
 import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.time.LocalTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupRoutineList {
+public class GroupRoutineList extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

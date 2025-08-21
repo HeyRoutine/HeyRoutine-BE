@@ -1,5 +1,6 @@
 package com.saeparam.HeyRoutine.domain.routine.entity;
 
+import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupRoutineMiddle {
+public class GroupRoutineMiddle extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "group_routine_middle_id", updatable = false, unique = true, nullable = false)

@@ -1,6 +1,6 @@
 package com.saeparam.HeyRoutine.domain.routine.entity;
 
-import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,17 +10,16 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserInRoom extends BaseTime {
+public class GroupRoutineDays extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_in_room_id", updatable = false, unique = true, nullable = false)
+    @Column(name = "group_routine_days_id", updatable = false, unique = true, nullable = false)
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_routine_list_id", nullable = false)
+    @JoinColumn(name = "group_routine_list_id")
     private GroupRoutineList groupRoutineList;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private DayType dayType;
 }
