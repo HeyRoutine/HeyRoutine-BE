@@ -30,7 +30,7 @@ public class MyRoutineDays extends BaseTime {
     @Column(nullable = false)
     private DayType dayType;
 
-
-
-
+    protected void setRoutineList(MyRoutineList routineList) {
+        this.routineList = routineList;
+    }
 }

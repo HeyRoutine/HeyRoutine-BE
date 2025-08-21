@@ -45,6 +45,13 @@ public class MyRoutineListController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateRoutineToMyRoutineList(email,id, myRoutineListRequestDto)));
     }
 
+    @DeleteMapping("/list/{id}")
+    @Operation(summary = "개인루틴 리스트 삭제 API", description = "개인루틴 리스트를 삭제합니다.")
+    public ResponseEntity<?> deleteRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long id){
+        String email = jwtTokenProvider.getEmail(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.deleteRoutineToMyRoutineList(email,id)));
+    }
+
     /**
      * 모든 개인루틴 리스트 보여주기
      * 페이지네이션 10개씩

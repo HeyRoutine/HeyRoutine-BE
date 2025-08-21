@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,20 +39,38 @@ public class MyRoutineListService {
     private final EmojiRepository emojiRepository;
     private final RoutineRepository routineRepository;
 
+
+
+
     @Transactional
-    public String makeMyRoutineList(String email, MyRoutineListRequestDto myRoutineListRequestDto) {
+    public MyRoutineListResponseDto makeMyRoutineList(String email, MyRoutineListRequestDto myRoutineListRequestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList = MyRoutineListRequestDto.toEntity(myRoutineListRequestDto, user);
         myRoutineListRepository.save(myRoutineList);
+
+
+//        if (myRoutineListRequestDto.getDayTypes() != null) {
+//            myRoutineListRequestDto.getDayTypes().stream()
+//                    .map(dayType -> MyRoutineDays.builder().dayType(dayType).build())
+//                    .forEach(myRoutineList::addRoutineDay);
+//        }
+
+        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
+        Set<DayType> dayTypeSet=new HashSet<>();
         for (DayType day : myRoutineListRequestDto.getDayTypes()) {
             myRoutineDaysRepository.save(MyRoutineDays.builder()
                     .routineList(myRoutineList)
                     .dayType(day)
                     .build());
+            dayTypeSet.add(day);
         }
+//        MyRoutineList savedMyRoutineList = myRoutineListRepository.save(myRoutineList);
 
-        return "리스트가 저장되었습니다";
+        MyRoutineListResponseDto myRoutineListResponseDto=MyRoutineListResponseDto.toDto(myRoutineList);
+        myRoutineListResponseDto.setDayTypes(dayTypeSet);
+        return myRoutineListResponseDto;
+
     }
 
     @Transactional(readOnly = true)
@@ -110,5 +130,19 @@ public class MyRoutineListService {
         return "수정 됐습니다.";
 
 
+    }
+
+    @Transactional
+    public String deleteRoutineToMyRoutineList(String email, Long id) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (!myRoutineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        myRoutineListRepository.delete(myRoutineList);
+
+        return "삭제 됐습니다.";
     }
 }

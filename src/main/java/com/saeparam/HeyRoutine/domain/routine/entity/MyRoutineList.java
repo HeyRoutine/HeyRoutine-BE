@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,8 +49,13 @@ public class MyRoutineList extends BaseTime {
     @Column(name = "routine_type", nullable = false)
     private RoutineType routineType;
 
+    @Builder.Default
     @OneToMany(mappedBy = "routineList", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MyRoutineDays> routineDays;
+    private Set<MyRoutineDays> routineDays=new HashSet<>();
+
+    @OneToMany(mappedBy = "routineList", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<MyRoutineMiddle> routineMiddles;
+
 
     public void update(MyRoutineListRequestDto requestDto) {
         this.title = requestDto.getTitle();
@@ -70,6 +76,10 @@ public class MyRoutineList extends BaseTime {
             this.routineDays.addAll(newRoutineDays);
         }
     }
+//    public void addRoutineDay(MyRoutineDays routineDay) {
+//        this.routineDays.add(routineDay);
+//        routineDay.setRoutineList(this);
+//    }
 
 
 
