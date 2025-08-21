@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
   // 해당하는 User 의 데이터가 존재한다면 UserDetails 객체로 만들어서 return
   private UserDetails createUserDetails(User user) {
     return org.springframework.security.core.userdetails.User.builder()
-        .username(user.getEmail())
+        .username(user.getId().toString())
         .password(user.getPassword())
         .roles(user.getRoles().stream().map(Role::name).toArray(String[]::new))
         .build();

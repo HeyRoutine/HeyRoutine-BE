@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -92,7 +93,7 @@ class PointShopServiceConcurrencyTest {
                     String lockName = "product_lock:" + testProduct.getId();
                     String userEmail = testUsers.get(userIndex).getEmail();
 
-                    pointShopService.buyProduct(lockName, userEmail, testProduct.getId());
+                    pointShopService.buyProduct(lockName, UUID.fromString(userEmail), testProduct.getId());
                     successCount.incrementAndGet(); // 성공 카운트 증가
                     System.out.println("구매 성공");
                 } catch (Exception e) {
