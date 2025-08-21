@@ -27,7 +27,7 @@ public class MyRoutineMiddle extends BaseTime {
     @JoinColumn(name = "my_routine_list_id")
     private MyRoutineList routineList;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "routine_id")
     private Routine routine;
 
