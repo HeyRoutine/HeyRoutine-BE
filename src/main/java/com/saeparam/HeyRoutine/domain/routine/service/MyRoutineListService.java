@@ -21,11 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +38,7 @@ public class MyRoutineListService {
     private final MyRoutineMiddleRepository myRoutineMiddleRepository;
     private final EmojiRepository emojiRepository;
     private final RoutineRepository routineRepository;
+    private final RoutineRecordRepository routineRecordRepository;
 
 
 
@@ -94,20 +94,6 @@ public class MyRoutineListService {
                 .build());
 
         return "루틴이 저장되었습니다";
-    }
-
-    @Transactional(readOnly = true)
-    public List<RoutineResponseDto> showRoutineInMyRoutineList(UUID userId, Long id) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
-        if (!myRoutineList.getUser().equals(user)) {
-            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
-        }
-        List<Routine> routines = routineRepository.findAllByRoutineListId(id);
-
-        return routines.stream().map(RoutineResponseDto::toDto).collect(Collectors.toList());
     }
 
     @Transactional
@@ -166,5 +152,89 @@ public class MyRoutineListService {
         }
         routineRepository.delete(routine);
         return "루틴이 삭제되었습니다.";
+    }
+
+    @Transactional
+    public String updateRoutineStatus(UUID userId, Long routineId, LocalDate date) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        Routine routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+
+        // 루틴의 소유권이 현재 사용자와 일치하는지 확인
+        // get(0)은 위험할 수 있으므로, 더 안정적인 방법으로 변경하는 것을 고려해야 합니다.
+        if(routine.getRoutineMiddles().isEmpty() || !routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        Optional<RoutineRecord> recordOpt = routineRecordRepository.findRecordByDateAndRoutine(user, routine, startOfDay, endOfDay);
+
+        if (recordOpt.isPresent()) {
+            // 이미 완료 기록이 있다면, 상태를 true로 업데이트만 합니다.
+            RoutineRecord existingRecord = recordOpt.get();
+            if (!existingRecord.isDoneCheck()) {
+                existingRecord.updateDoneCheck(true);
+            }
+        } else {
+            // 기록이 없을 때 새로 생성합니다.
+            RoutineRecord newRecord = RoutineRecord.builder()
+                    .user(user)
+                    .routine(routine)
+                    .doneCheck(true)
+                    .build();
+            routineRecordRepository.save(newRecord);
+        }
+
+        return "루틴이 완료 처리되었습니다.";
+    }
+
+
+    //새로운 개인루틴안 루틴보기
+    @Transactional(readOnly = true)
+    public List<RoutineResponseDto> getRoutinesInListByDate(UUID userId, Long routineListId, LocalDate date) {
+        // 1. 사용자 정보를 조회합니다.
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 루틴 목록을 조회하고, 소유권이 현재 사용자와 일치하는지 확인합니다.
+        MyRoutineList routineList = myRoutineListRepository.findById(routineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+
+        if (!routineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+
+        // 3. 루틴 목록에 속한 모든 루틴들을 연관관계를 통해 가져옵니다.
+        List<Routine> routines = routineList.getRoutineMiddles().stream()
+                .map(middle -> middle.getRoutine())
+                .collect(Collectors.toList());
+
+        if (routines.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // 4. 추출된 루틴들을 사용하여, 특정 날짜의 수행 기록(RoutineRecord)들을 DB에서 한 번에 조회합니다.
+        List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+
+        // 5. 조회된 기록 중, 완료된(done_check=true) 루틴의 ID만 Set으로 만들어 빠른 조회를 준비합니다.
+        Set<Long> completedRoutineIds = records.stream()
+                .filter(RoutineRecord::isDoneCheck)
+                .map(record -> record.getRoutine().getId())
+                .collect(Collectors.toSet());
+
+        // 6. 최종적으로, 루틴 정보와 그날의 수행 여부를 조합하여 DTO 리스트로 만듭니다.
+        return routines.stream()
+                .map(routine -> {
+                    boolean isCompleted = completedRoutineIds.contains(routine.getId());
+                    return RoutineResponseDto.toDto(routine, isCompleted);
+                })
+                .collect(Collectors.toList());
     }
 }
