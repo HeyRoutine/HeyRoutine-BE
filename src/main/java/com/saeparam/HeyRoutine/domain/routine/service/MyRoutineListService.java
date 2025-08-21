@@ -1,7 +1,7 @@
 package com.saeparam.HeyRoutine.domain.routine.service;
 
 
-import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListMakeRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
@@ -38,12 +38,12 @@ public class MyRoutineListService {
     private final RoutineRepository routineRepository;
 
     @Transactional
-    public String makeMyRoutineList(String email, MyRoutineListMakeRequestDto myRoutineListMakeRequestDto) {
+    public String makeMyRoutineList(String email, MyRoutineListRequestDto myRoutineListRequestDto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        MyRoutineList myRoutineList = MyRoutineListMakeRequestDto.toEntity(myRoutineListMakeRequestDto, user);
+        MyRoutineList myRoutineList = MyRoutineListRequestDto.toEntity(myRoutineListRequestDto, user);
         myRoutineListRepository.save(myRoutineList);
-        for (DayType day : myRoutineListMakeRequestDto.getDayTypes()) {
+        for (DayType day : myRoutineListRequestDto.getDayTypes()) {
             myRoutineDaysRepository.save(MyRoutineDays.builder()
                     .routineList(myRoutineList)
                     .dayType(day)
@@ -95,5 +95,20 @@ public class MyRoutineListService {
         List<Routine> routines = routineRepository.findAllByRoutineListId(id);
 
         return routines.stream().map(RoutineResponseDto::toDto).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String updateRoutineToMyRoutineList(String email, Long id, MyRoutineListRequestDto myRoutineListRequestDto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+        if (!myRoutineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+        myRoutineList.update(myRoutineListRequestDto);
+        return "수정 됐습니다.";
+
+
     }
 }

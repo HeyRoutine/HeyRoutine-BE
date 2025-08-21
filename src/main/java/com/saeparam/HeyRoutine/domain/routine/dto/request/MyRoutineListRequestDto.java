@@ -4,9 +4,6 @@ import com.saeparam.HeyRoutine.domain.routine.entity.MyRoutineList;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -22,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MyRoutineListMakeRequestDto {
+public class MyRoutineListRequestDto {
     private String title;
     private LocalDateTime startDate;
     private LocalTime startTime;
@@ -30,13 +27,13 @@ public class MyRoutineListMakeRequestDto {
     private RoutineType routineType;
     private List<DayType> dayTypes;
 
-    public static MyRoutineList toEntity(MyRoutineListMakeRequestDto myRoutineListMakeRequestDto, User user){
+    public static MyRoutineList toEntity(MyRoutineListRequestDto myRoutineListRequestDto, User user){
         return MyRoutineList.builder()
-                .title(myRoutineListMakeRequestDto.getTitle())
-                .startDate(myRoutineListMakeRequestDto.getStartDate())
-                .startTime(myRoutineListMakeRequestDto.getStartTime())
-                .endTime(myRoutineListMakeRequestDto.getEndTime())
-                .routineType(myRoutineListMakeRequestDto.getRoutineType())
+                .title(myRoutineListRequestDto.getTitle())
+                .startDate(myRoutineListRequestDto.getStartDate())
+                .startTime(myRoutineListRequestDto.getStartTime())
+                .endTime(myRoutineListRequestDto.getEndTime())
+                .routineType(myRoutineListRequestDto.getRoutineType())
                 .user(user)
                 .build();
     }
