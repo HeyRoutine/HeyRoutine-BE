@@ -125,6 +125,12 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                     .dayType(day)
                     .build());
         }
+
+        // 참여 정보 저장 -> 반장이지만 해당 그룹에 속해있으니
+        userInRoomRepository.save(UserInRoom.builder()
+                .groupRoutineList(groupRoutineList)
+                .user(user)
+                .build());
     }
 
     // 주석 다 쓰려니까 힘드네오 필요한 부분 간략할게 작성할게욥
@@ -182,6 +188,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
         groupRoutineMiddleRepository.deleteAllByRoutineList(groupRoutineList);
         userInRoomRepository.deleteAllByGroupRoutineList(groupRoutineList);
+        guestbookRepository.deleteAllByGroupRoutineList(groupRoutineList);
 
         // 단체 루틴 삭제
         groupRoutineListRepository.delete(groupRoutineList);

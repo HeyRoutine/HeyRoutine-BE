@@ -15,4 +15,6 @@ public interface GuestbookRepository extends JpaRepository<Guestbook, Long> {
     Page<Guestbook> findByGroupRoutineList(GroupRoutineList groupRoutineList, Pageable pageable);
 
     Optional<Guestbook> findByIdAndGroupRoutineList(Long id, GroupRoutineList groupRoutineList);
+
+    void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
 }
