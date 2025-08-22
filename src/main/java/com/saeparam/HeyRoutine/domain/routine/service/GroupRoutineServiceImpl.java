@@ -5,13 +5,17 @@ import com.saeparam.HeyRoutine.domain.routine.dto.request.GuestbookRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.SubRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
+import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineMiddleRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.error.handler.RoutineHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
@@ -21,8 +25,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +44,8 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final UserInRoomRepository userInRoomRepository;
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
     private final UserRepository userRepository;
+
+    // 요일 변환 로직은 DayType.from(String)에 위임합니다.
 
     @Override
     @Transactional(readOnly = true)
@@ -78,7 +88,37 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void createGroupRoutine(UUID userId, GroupRoutineRequestDto.Create createDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        RoutineType routineType = createDto.getRoutineType();
+        if (routineType == null) {
+            throw new RoutineHandler(ErrorStatus.INVALID_ROUTINE_TYPE);
+        }
+
+        LocalTime startTime = parseTime(createDto.getStartTime());
+        LocalTime endTime = parseTime(createDto.getEndTime());
+
+        List<DayType> dayTypes = convertDayTypes(createDto.getDaysOfWeek());
+
+        GroupRoutineList groupRoutineList = GroupRoutineList.builder()
+                .user(user)
+                .routineType(routineType)
+                .title(createDto.getTitle())
+                .description(createDto.getDescription())
+                .startTime(startTime)
+                .endTime(endTime)
+                .userCnt(1)
+                .build();
+
+        groupRoutineListRepository.save(groupRoutineList);
+
+        for (DayType day : dayTypes) {
+            groupRoutinDaysRepository.save(GroupRoutineDays.builder()
+                    .groupRoutineList(groupRoutineList)
+                    .dayType(day)
+                    .build());
+        }
     }
 
     @Override
@@ -90,12 +130,54 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void updateGroupRoutine(UUID userId, Long groupRoutineListId, GroupRoutineRequestDto.Update updateDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        RoutineType routineType = updateDto.getRoutineType();
+        if (routineType == null) {
+            throw new RoutineHandler(ErrorStatus.INVALID_ROUTINE_TYPE);
+        }
+
+        LocalTime startTime = parseTime(updateDto.getStartTime());
+        LocalTime endTime = parseTime(updateDto.getEndTime());
+
+        List<DayType> dayTypes = convertDayTypes(updateDto.getDaysOfWeek());
+
+        groupRoutineList.update(updateDto.getTitle(), updateDto.getDescription(), routineType, startTime, endTime);
+
+        groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
+        for (DayType day : dayTypes) {
+            groupRoutinDaysRepository.save(GroupRoutineDays.builder()
+                    .groupRoutineList(groupRoutineList)
+                    .dayType(day)
+                    .build());
+        }
     }
 
     @Override
     public void deleteGroupRoutine(UUID userId, Long groupRoutineListId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
+        groupRoutineMiddleRepository.deleteAllByRoutineList(groupRoutineList);
+        userInRoomRepository.deleteAllByGroupRoutineList(groupRoutineList);
+
+        groupRoutineListRepository.delete(groupRoutineList);
     }
 
     @Override
@@ -139,5 +221,46 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     @Override
     public void deleteGroupGuestbook(UUID userId, Long groupRoutineListId, Long guestbookId) {
         // TODO: Implement logic
+    }
+
+
+    // ####################### Private 서브 메서드 #######################
+    /**
+     * 문자열 형태의 시간을 {@link LocalTime}으로 변환합니다.
+     *
+     * @param time HH:mm 형식의 문자열
+     * @return {@link LocalTime}
+     * @throws RoutineHandler 시간이 올바른 형식이 아닐 경우
+     */
+    private LocalTime parseTime(String time) {
+        try {
+            return LocalTime.parse(time);
+        } catch (DateTimeParseException e) {
+            throw new RoutineHandler(ErrorStatus.INVALID_TIME_FORMAT);
+        }
+    }
+
+    /**
+     * 요일 문자열 리스트를 {@link DayType} 리스트로 변환합니다.
+     * 중복되거나 존재하지 않는 요일이 포함된 경우 예외가 발생합니다.
+     *
+     * @param daysOfWeek 요일 문자열 리스트
+     * @return 변환된 요일 리스트
+     * @throws RoutineHandler 요일 정보가 중복되거나 올바르지 않은 경우
+     */
+    private List<DayType> convertDayTypes(List<String> daysOfWeek) {
+        if (daysOfWeek == null || daysOfWeek.isEmpty()) {
+            throw new RoutineHandler(ErrorStatus.INVALID_DAY_OF_WEEK);
+        }
+
+        Set<DayType> resultSet = new LinkedHashSet<>();
+        for (String day : daysOfWeek) {
+            DayType dayType = DayType.from(day);
+            if (dayType == null || !resultSet.add(dayType)) {
+                throw new RoutineHandler(ErrorStatus.INVALID_DAY_OF_WEEK);
+            }
+        }
+
+        return resultSet.stream().collect(Collectors.toList());
     }
 }

@@ -25,4 +25,11 @@ public interface UserInRoomRepository extends JpaRepository<UserInRoom, Long> {
      * @return true: 참여중, false: 미참여
      */
     boolean existsByGroupRoutineListAndUser(GroupRoutineList groupRoutineList, User user);
+
+    /**
+     * 특정 단체 루틴에 참여중인 모든 사용자 정보를 삭제합니다.
+     *
+     * @param groupRoutineList 단체 루틴
+     */
+    void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
 }

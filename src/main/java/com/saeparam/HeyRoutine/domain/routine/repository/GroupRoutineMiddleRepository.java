@@ -14,4 +14,11 @@ public interface GroupRoutineMiddleRepository extends JpaRepository<GroupRoutine
      * @return 상세 루틴 개수
      */
     long countByRoutineList(GroupRoutineList routineList);
+
+    /**
+     * 특정 단체 루틴에 속한 모든 상세 루틴을 삭제합니다.
+     *
+     * @param routineList 단체 루틴
+     */
+    void deleteAllByRoutineList(GroupRoutineList routineList);
 }

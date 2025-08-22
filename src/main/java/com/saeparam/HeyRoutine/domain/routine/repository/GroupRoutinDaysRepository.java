@@ -18,4 +18,11 @@ public interface GroupRoutinDaysRepository extends JpaRepository<GroupRoutineDay
      * @return 요일 정보 목록
      */
     List<GroupRoutineDays> findByGroupRoutineList(GroupRoutineList groupRoutineList);
+
+    /**
+     * 특정 단체 루틴과 연관된 모든 요일 정보를 삭제합니다.
+     *
+     * @param groupRoutineList 단체 루틴
+     */
+    void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
 }
