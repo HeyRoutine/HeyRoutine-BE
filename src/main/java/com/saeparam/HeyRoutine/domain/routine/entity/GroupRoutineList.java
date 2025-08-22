@@ -62,4 +62,11 @@ public class GroupRoutineList extends BaseTime {
         this.startTime = startTime;
         this.endTime = endTime;
     }
+
+    /**
+     * 단체 루틴에 참여한 인원 수를 1 증가
+     */
+    public void increaseUserCnt() {
+        this.userCnt++;
+    }
 }

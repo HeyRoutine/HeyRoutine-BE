@@ -7,6 +7,7 @@ import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseD
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
@@ -189,7 +190,27 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void joinGroupRoutine(UUID userId, Long groupRoutineListId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        // 이미 참여중인지 확인 (방장 포함)
+        boolean isOwner = groupRoutineList.getUser().equals(user);
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (isOwner || isMember) {
+            throw new RoutineHandler(ErrorStatus.ALREADY_JOINED_ROUTINE);
+        }
+
+        // 참여 정보 저장
+        userInRoomRepository.save(UserInRoom.builder()
+                .groupRoutineList(groupRoutineList)
+                .user(user)
+                .build());
+
+        // 인원 수 +1 해주기
+        groupRoutineList.increaseUserCnt();
     }
 
     @Override
