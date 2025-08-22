@@ -299,7 +299,20 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void deleteGroupGuestbook(UUID userId, Long groupRoutineListId, Long guestbookId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        Guestbook guestbook = guestbookRepository.findByIdAndGroupRoutineList(guestbookId, groupRoutineList)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GUESTBOOK_NOT_FOUND));
+
+        if (!guestbook.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        guestbookRepository.delete(guestbook);
     }
 
 
