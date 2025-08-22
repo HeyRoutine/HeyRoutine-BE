@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <h2>GuestbookResponseDto</h2>
@@ -43,7 +44,7 @@ public class GuestbookResponseDto {
         private Long id;
 
         @Schema(description = "작성자 ID", example = "123")
-        private Long userId;
+        private UUID userId;
 
         @Schema(description = "작성자 닉네임", example = "이싸피")
         private String nickname;
