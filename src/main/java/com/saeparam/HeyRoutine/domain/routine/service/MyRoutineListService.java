@@ -39,6 +39,7 @@ public class MyRoutineListService {
     private final EmojiRepository emojiRepository;
     private final RoutineRepository routineRepository;
     private final RoutineRecordRepository routineRecordRepository;
+    private final MyRoutineListRecordRepository myRoutineListRecordRepository;
 
 
 
@@ -155,7 +156,7 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String updateRoutineStatus(UUID userId, Long routineId, LocalDate date) {
+    public String completeRoutine(UUID userId, Long routineId, LocalDate date) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
@@ -229,5 +230,39 @@ public class MyRoutineListService {
                     return RoutineResponseDto.toDto(routine, isCompleted);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String completeMyRoutineList(UUID userId, Long myRoutineListId, LocalDate date) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        MyRoutineList routineList = myRoutineListRepository.findById(myRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.MY_ROUTINE_LIST_NOT_FOUND));
+
+        // 루틴 목록의 소유권 확인
+        if (!routineList.getUser().equals(user)) {
+            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // 해당 날짜에 이미 완료 기록이 있는지 확인
+        Optional<MyRoutineListRecord> recordOpt = myRoutineListRecordRepository
+                .findByUserAndMyRoutineListAndCreatedDateBetween(user, routineList, startOfDay, endOfDay);
+
+        // 기록이 없을 경우에만 새로 생성 (중복 방지)
+        if (recordOpt.isEmpty()) {
+            MyRoutineListRecord newRecord = MyRoutineListRecord.builder()
+                    .user(user)
+                    .myRoutineList(routineList)
+                    .doneCheck(true)
+                    .build();
+            myRoutineListRecordRepository.save(newRecord);
+        }
+
+        return "루틴 목록이 완료 처리되었습니다.";
+
     }
 }

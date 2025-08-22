@@ -125,9 +125,22 @@ public class MyRoutineListController {
      */
     @PostMapping("/list/routine/complete/{routineId}")
     @Operation(summary = "개인루틴 리스트안 루틴 수행 API", description = "개인루틴 리스트안 루틴을 수행완료 합니다")
-    public ResponseEntity<?> doneRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long routineId,@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    public ResponseEntity<?> doneRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long routineId,@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date){
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.completeRoutine(userId,routineId,date)));
+    }
+
+    /**
+     * 루틴리스트 기록하기
+     * id = 루틴리스트 Id
+     */
+    @PostMapping("/list/complete/{myRoutineListId}")
+    @Operation(summary = "개인루틴 리스트 기록 API", description = "개인루틴 리스트 수행을 기록 합니다")
+    public ResponseEntity<?> doneMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId,@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateRoutineStatus(userId,routineId,date)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.completeMyRoutineList(userId,myRoutineListId,date)));
     }
+
+
 }
