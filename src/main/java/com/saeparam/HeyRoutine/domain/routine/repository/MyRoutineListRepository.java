@@ -18,6 +18,6 @@ public interface MyRoutineListRepository extends JpaRepository<MyRoutineList, Lo
             "WHERE mrl.user = :user " +
             "AND mrl.startDate <= :localDateTime " +
             "AND mrd.dayType = :day")
-    List<MyRoutineList> findByUserAndStartDateAfterAndDay(User user, DayType day, LocalDateTime localDateTime, Pageable pageable
+    Page<MyRoutineList> findByUserAndStartDateAfterAndDay(User user, DayType day, LocalDateTime localDateTime, Pageable pageable
     );
 }

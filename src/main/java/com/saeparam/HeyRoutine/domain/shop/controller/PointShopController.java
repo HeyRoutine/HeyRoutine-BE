@@ -47,15 +47,13 @@ public class PointShopController {
     @Operation(summary = "물건 전체보기 API", description = "물건 전체를 조회합니다.")
     public ResponseEntity<?> shopList( @PageableDefault(size = 10, sort = "stock") Pageable pageable) {
 
-        List<PointShopListResponseDto> result=pointShopService.shopList(pageable);
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(pointShopService.shopList(pageable)));
     }
     @GetMapping("/list/{category}")
-    @Operation(summary = "물건 전체보기 API", description = "물건 전체를 조회합니다.")
+    @Operation(summary = "물건 카테고리별 전체보기 API", description = "물건 카테고리별 조회합니다.")
     public ResponseEntity<?> shopCategoryList( @PageableDefault(size = 10, sort = "stock") Pageable pageable,@PathVariable PointShopCategory category) {
 
-        List<PointShopListResponseDto> result=pointShopService.shopCategoryList(pageable,category);
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(pointShopService.shopCategoryList(pageable,category)));
     }
 
 
