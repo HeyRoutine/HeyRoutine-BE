@@ -5,6 +5,7 @@ import com.saeparam.HeyRoutine.domain.routine.dto.request.GuestbookRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.SubRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
+import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
@@ -32,9 +33,9 @@ public interface GroupRoutineService {
      *
      * @param id    현재 로그인한 사용자의 uuid
      * @param pageable 페이지 번호, 페이지 크기 정보를 담은 객체
-     * @return {@link GroupRoutineResponseDto.ListResponse} 단체 루틴 목록 정보
+     * @return {@link GroupRoutineResponseDto.GroupRoutineInfo} 단체 루틴 목록 정보
      */
-    GroupRoutineResponseDto.ListResponse getGroupRoutines(UUID id, Pageable pageable);
+    PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getGroupRoutines(UUID id, Pageable pageable);
 
     /**
      * 새로운 단체 루틴을 생성합니다.
@@ -149,7 +150,7 @@ public interface GroupRoutineService {
      * @param pageable           페이지 번호, 페이지 크기 정보를 담은 객체
      * @return {@link GuestbookResponseDto.GuestbookList} 방명록 목록 정보
      */
-    GuestbookResponseDto.GuestbookList getGroupGuestbooks(UUID id, Long groupRoutineListId, Pageable pageable);
+    PaginatedResponse<GuestbookResponseDto.GuestbookList> getGroupGuestbooks(UUID id, Long groupRoutineListId, Pageable pageable);
 
     /**
      * 특정 단체 루틴에 방명록을 작성합니다.

@@ -19,7 +19,6 @@ import java.util.List;
  * ┌───────────────────────────────┐
  * │ GroupRoutineResponseDto       │
  * ├───────────────────────────────┤
- * │ - ListResponse                │──► 단체 루틴 목록 조회 응답
  * │ - DetailResponse              │──► 단체 루틴 상세 조회 응답
  * │ - GroupRoutineInfo            │──► (공용) 단체 루틴 기본 정보
  * │ - RoutineInfo                 │──► (공용) 상세 루틴 정보
@@ -29,17 +28,6 @@ import java.util.List;
  */
 public class GroupRoutineResponseDto {
 
-    /**
-     * <h3>[Response] 단체 루틴 목록 조회</h3>
-     * <p>GET /api/v1/routines/groups</p>
-     */
-    @Getter
-    @Builder
-    @Schema(description = "단체 루틴 목록 응답 DTO")
-    public static class ListResponse {
-        @Schema(description = "단체 루틴 정보 리스트")
-        private List<GroupRoutineInfo> items;
-    }
 
     /**
      * <h3>[Response] 단체 루틴 상세 조회</h3>

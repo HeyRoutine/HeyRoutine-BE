@@ -8,12 +8,14 @@ import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.service.GroupRoutineService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
+import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.SuccessStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,11 +71,11 @@ public class GroupRoutineController {
 
     @GetMapping
     @Operation(summary = "단체루틴 리스트 조회 API", description = "모든 단체루틴 리스트를 페이지네이션으로 조회합니다.")
-    public ResponseEntity<ApiResponse<GroupRoutineResponseDto.ListResponse>> getGroupRoutines(@RequestHeader("Authorization") String token,
-                                                                                              Pageable pageable) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo>>> getGroupRoutines(@RequestHeader("Authorization") String token,
+                                                                                                                     @PageableDefault(page = 0, size = 10) Pageable pageable) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
-        GroupRoutineResponseDto.ListResponse response = groupRoutineService.getGroupRoutines(uuid, pageable);
-        if (response.getItems().isEmpty()) {
+        PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> response = groupRoutineService.getGroupRoutines(uuid, pageable);
+        if (response.items().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.noContent());
         }
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
@@ -178,12 +180,12 @@ public class GroupRoutineController {
 
     @GetMapping("/{groupRoutineListId}/guestbooks")
     @Operation(summary = "방명록 조회 API", description = "특정 단체루틴의 방명록을 페이지네이션으로 조회합니다.")
-    public ResponseEntity<ApiResponse<GuestbookResponseDto.GuestbookList>> getGroupGuestbooks(@RequestHeader("Authorization") String token,
+    public ResponseEntity<ApiResponse<PaginatedResponse<GuestbookResponseDto.GuestbookList>>> getGroupGuestbooks(@RequestHeader("Authorization") String token,
                                                                                               @PathVariable Long groupRoutineListId,
-                                                                                              Pageable pageable) {
+                                                                                              @PageableDefault(page = 0, size = 10) Pageable pageable) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
-        GuestbookResponseDto.GuestbookList response = groupRoutineService.getGroupGuestbooks(uuid, groupRoutineListId, pageable);
-        if (response.getItems().isEmpty()) {
+        PaginatedResponse<GuestbookResponseDto.GuestbookList> response = groupRoutineService.getGroupGuestbooks(uuid, groupRoutineListId, pageable);
+        if (response.items().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.noContent());
         }
         return ResponseEntity.ok(ApiResponse.onSuccess(response, SuccessStatus.SELECT_SUCCESS.getMessage()));

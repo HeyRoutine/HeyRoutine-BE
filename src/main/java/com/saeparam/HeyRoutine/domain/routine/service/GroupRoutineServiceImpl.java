@@ -13,6 +13,7 @@ import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
-    public GroupRoutineResponseDto.ListResponse getGroupRoutines(UUID userId, Pageable pageable) {
+    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getGroupRoutines(UUID userId, Pageable pageable) {
         // 1. 사용자 존재 여부 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -47,38 +48,32 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAll(pageable);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        // 3. 각 루틴에 대한 정보 매핑
-        List<GroupRoutineResponseDto.GroupRoutineInfo> items = routinePage.getContent().stream()
-                .map(routine -> {
-                    long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
-                    long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+        // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
+        return PaginatedResponse.of(routinePage, routine -> {
+            long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
+            long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
 
-                    boolean isJoined = routine.getUser().equals(user)
-                            || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
+            boolean isJoined = routine.getUser().equals(user)
+                    || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
 
-                    List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
-                            .stream()
-                            .map(day -> day.getDayType().name())
-                            .collect(Collectors.toList());
+            List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
+                    .stream()
+                    .map(day -> day.getDayType().name())
+                    .collect(Collectors.toList());
 
-                    return GroupRoutineResponseDto.GroupRoutineInfo.builder()
-                            .id(routine.getId())
-                            .routineType(routine.getRoutineType())
-                            .title(routine.getTitle())
-                            .description(routine.getDescription())
-                            .startTime(routine.getStartTime().format(formatter))
-                            .endTime(routine.getEndTime().format(formatter))
-                            .routineNums((int) routineNums)
-                            .peopleNums((int) peopleNums)
-                            .dayOfWeek(dayOfWeek)
-                            .isJoined(isJoined)
-                            .build();
-                })
-                .collect(Collectors.toList());
-
-        return GroupRoutineResponseDto.ListResponse.builder()
-                .items(items)
-                .build();
+            return GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                    .id(routine.getId())
+                    .routineType(routine.getRoutineType())
+                    .title(routine.getTitle())
+                    .description(routine.getDescription())
+                    .startTime(routine.getStartTime().format(formatter))
+                    .endTime(routine.getEndTime().format(formatter))
+                    .routineNums((int) routineNums)
+                    .peopleNums((int) peopleNums)
+                    .dayOfWeek(dayOfWeek)
+                    .isJoined(isJoined)
+                    .build();
+        });
     }
 
     @Override
@@ -130,7 +125,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
-    public GuestbookResponseDto.GuestbookList getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
+    public PaginatedResponse<GuestbookResponseDto.GuestbookList> getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
         // TODO: Implement logic
         return null;
     }

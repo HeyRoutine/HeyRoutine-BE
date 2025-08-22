@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface GroupRoutineMiddleRepository extends JpaRepository<GroupRoutineMiddle,Long> {
+public interface GroupRoutineMiddleRepository extends JpaRepository<GroupRoutineMiddle, Long> {
     /**
      * 주어진 단체 루틴에 속한 상세 루틴의 개수를 반환합니다.
      *

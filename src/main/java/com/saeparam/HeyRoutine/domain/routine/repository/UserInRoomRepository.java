@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserInRoomRepository extends JpaRepository<UserInRoom,Long> {
+public interface UserInRoomRepository extends JpaRepository<UserInRoom, Long> {
+
     /**
      * 특정 단체 루틴에 참여중인 인원 수를 반환합니다.
      *
