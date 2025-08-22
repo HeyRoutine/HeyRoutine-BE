@@ -30,7 +30,7 @@ import java.util.UUID;
  *
  * <pre>
  * ┌────────────────┐      ┌──────────────────────────┐      ┌─────────────────────┐
- * │    Client      │◄───► │  GroupRoutineController  │◄───►│  GroupRoutineService  │
+ * │    Client      │◄───► │  GroupRoutineController  │◄────►│ GroupRoutineService │
  * └────────────────┘      └──────────────────────────┘      └─────────────────────┘
  * </pre>
  *
@@ -59,7 +59,7 @@ import java.util.UUID;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/routines/groups")
+@RequestMapping("/routines/groups")
 @Tag(name = "Routine-Group", description = "단체 루틴 관련 API")
 public class GroupRoutineController {
 
