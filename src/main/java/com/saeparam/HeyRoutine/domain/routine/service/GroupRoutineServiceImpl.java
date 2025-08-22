@@ -7,13 +7,11 @@ import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseD
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.entity.Guestbook;
 import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineMiddleRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.*;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.error.handler.RoutineHandler;
@@ -44,6 +42,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
     private final UserInRoomRepository userInRoomRepository;
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
+    private final GuestbookRepository guestbookRepository;
     private final UserRepository userRepository;
 
     // 요일 변환 로직은 DayType.from(String)에 위임
@@ -242,9 +241,26 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginatedResponse<GuestbookResponseDto.GuestbookList> getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
-        // TODO: Implement logic
-        return null;
+    public PaginatedResponse<GuestbookResponseDto.GuestbookInfo> getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        Page<Guestbook> guestbookPage = guestbookRepository.findByGroupRoutineList(groupRoutineList, pageable);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return PaginatedResponse.of(guestbookPage, gb -> GuestbookResponseDto.GuestbookInfo.builder()
+                .id(gb.getId())
+                .userId(gb.getUser().getId())
+                .nickname(gb.getUser().getNickname())
+                .profileImageUrl(gb.getUser().getProfileImage())
+                .content(gb.getContent())
+                .createdAt(gb.getCreatedDate() != null ? gb.getCreatedDate().format(formatter) : null)
+                .isWriter(gb.getUser().equals(user))
+                .build());
     }
 
     @Override
