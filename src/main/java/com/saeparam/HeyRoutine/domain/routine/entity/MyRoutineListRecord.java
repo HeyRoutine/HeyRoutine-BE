@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoutineListDoneCheck extends BaseTime {
+public class MyRoutineListRecord extends BaseTime {
 
-    @Column(name = "my_routine_list_done_check_id", updatable = false, unique = true, nullable = false)
+    @Column(name = "my_routine_list_record_id", updatable = false, unique = true, nullable = false)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
