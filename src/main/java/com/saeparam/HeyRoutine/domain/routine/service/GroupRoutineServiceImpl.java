@@ -5,25 +5,80 @@ import com.saeparam.HeyRoutine.domain.routine.dto.request.GuestbookRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.SubRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineMiddleRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
+import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class GroupRoutineServiceImpl implements GroupRoutineService {
 
-    // TODO: Add necessary repositories (e.g., GroupRoutineRepository, MemberRepository)
+    private final GroupRoutineListRepository groupRoutineListRepository;
+    private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
+    private final UserInRoomRepository userInRoomRepository;
+    private final GroupRoutinDaysRepository groupRoutinDaysRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
     public GroupRoutineResponseDto.ListResponse getGroupRoutines(UUID userId, Pageable pageable) {
-        // TODO: Implement logic
-        return null;
+        // 1. 사용자 존재 여부 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 단체 루틴 목록 조회 (페이징)
+        Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAll(pageable);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        // 3. 각 루틴에 대한 정보 매핑
+        List<GroupRoutineResponseDto.GroupRoutineInfo> items = routinePage.getContent().stream()
+                .map(routine -> {
+                    long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
+                    long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+
+                    boolean isJoined = routine.getUser().equals(user)
+                            || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
+
+                    List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
+                            .stream()
+                            .map(day -> day.getDayType().name())
+                            .collect(Collectors.toList());
+
+                    return GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                            .id(routine.getId())
+                            .routineType(routine.getRoutineType())
+                            .title(routine.getTitle())
+                            .description(routine.getDescription())
+                            .startTime(routine.getStartTime().format(formatter))
+                            .endTime(routine.getEndTime().format(formatter))
+                            .routineNums((int) routineNums)
+                            .peopleNums((int) peopleNums)
+                            .dayOfWeek(dayOfWeek)
+                            .isJoined(isJoined)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return GroupRoutineResponseDto.ListResponse.builder()
+                .items(items)
+                .build();
     }
 
     @Override
