@@ -14,15 +14,28 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class RoutineResponseDto {
+    private Long routineId;
     private String routineName;
     private String emojiUrl;
     private int time;
+    private boolean isCompleted;
 
-    public static RoutineResponseDto toDto(Routine routine){
+//    public static RoutineResponseDto toDto(Routine routine){
+//        return RoutineResponseDto.builder()
+//                .routineId(routine.getId())
+//                .emojiUrl(routine.getEmoji().getEmojiUrl())
+//                .time(routine.getTime())
+//                .routineName(routine.getName())
+//                .build();
+//    }
+
+    public static RoutineResponseDto toDto(Routine routine, boolean isCompleted) {
         return RoutineResponseDto.builder()
+                .routineId(routine.getId())
+                .routineName(routine.getName())
                 .emojiUrl(routine.getEmoji().getEmojiUrl())
                 .time(routine.getTime())
-                .routineName(routine.getName())
+                .isCompleted(isCompleted)
                 .build();
     }
 
