@@ -1,8 +1,7 @@
 package com.saeparam.HeyRoutine.domain.routine.entity;
 
 
-import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
-import com.saeparam.HeyRoutine.domain.user.entity.User;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.global.common.util.BaseTime;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,8 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -37,8 +35,14 @@ public class Routine extends BaseTime {
     private int time;
 
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<MyRoutineMiddle> routineMiddles;
+    private List<MyRoutineMiddle> routineMiddles;
 
+    public void update(RoutineRequestDto routineRequestDto,Emoji emoji) {
+        this.emoji=emoji;
+        this.name=routineRequestDto.getRoutineName();
+        this.time=routineRequestDto.getTime();
+
+    }
 
 
 

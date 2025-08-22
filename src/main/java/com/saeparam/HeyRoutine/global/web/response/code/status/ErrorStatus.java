@@ -51,7 +51,9 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 루틴관련 응답
     MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
-    EMOJI_NOT_FOUND(HttpStatus.BAD_REQUEST,"EMOJI4000","해당 이모지를 찾을 수 업습니다. ")
+    EMOJI_NOT_FOUND(HttpStatus.BAD_REQUEST,"EMOJI4000","해당 이모지를 찾을 수 업습니다. "),
+    ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4001","해당 Routine 을 찾을 수 업습니다. ")
+
     ;
 
     private final HttpStatus httpStatus;
