@@ -131,7 +131,7 @@ public class MyRoutineListService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         Routine routine=routineRepository.findById(id)
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
         Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
         if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
@@ -147,7 +147,7 @@ public class MyRoutineListService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         Routine routine=routineRepository.findById(routineId)
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+                .orElseThrow(()->new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
         if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
@@ -161,7 +161,7 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         Routine routine = routineRepository.findById(routineId)
-                .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
 
         // 루틴의 소유권이 현재 사용자와 일치하는지 확인
         if(routine.getRoutineMiddles().isEmpty() || !routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
