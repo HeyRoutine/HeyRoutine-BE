@@ -12,6 +12,7 @@ import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.common.aop.DistributedLock;
 import com.saeparam.HeyRoutine.global.error.handler.ShopHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,15 +46,15 @@ public class PointShopService {
     }
 
     @Transactional(readOnly = true)
-    public List<PointShopListResponseDto> shopList(Pageable pageable) {
+    public PaginatedResponse<PointShopListResponseDto> shopList(Pageable pageable) {
         Page<PointShop> productList = pointShopRepository.findAll(pageable);
-        return productList.map(PointShopListResponseDto::toDto).stream().toList();
+        return PaginatedResponse.of(productList,PointShopListResponseDto::toDto);
     }
 
     @Transactional(readOnly = true)
-    public List<PointShopListResponseDto> shopCategoryList(Pageable pageable, PointShopCategory category) {
+    public PaginatedResponse<PointShopListResponseDto>  shopCategoryList(Pageable pageable, PointShopCategory category) {
         Page<PointShop> product = pointShopRepository.findByCategory(category,pageable);
-        return product.map(PointShopListResponseDto::toDto).stream().toList();
+        return PaginatedResponse.of(product,PointShopListResponseDto::toDto);
 
     }
     @Transactional(readOnly = true)

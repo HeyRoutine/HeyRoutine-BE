@@ -14,9 +14,11 @@ import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 
 import com.saeparam.HeyRoutine.global.error.handler.RoutineHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,12 +70,12 @@ public class MyRoutineListService {
     }
 
     @Transactional(readOnly = true)
-    public List<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDateTime localDateTime,Pageable pageable) {
+    public PaginatedResponse<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDateTime localDateTime,Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        List<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,localDateTime,pageable);
+        Page<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,localDateTime,pageable);
 
-        return myRoutineList.stream().map(MyRoutineListResponseDto::toDto).collect(Collectors.toList());
+        return PaginatedResponse.of(myRoutineList, MyRoutineListResponseDto::toDto);
     }
 
     @Transactional
