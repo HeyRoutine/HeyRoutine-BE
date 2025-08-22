@@ -163,7 +163,6 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_NOT_FOUND));
 
         // 루틴의 소유권이 현재 사용자와 일치하는지 확인
-        // get(0)은 위험할 수 있으므로, 더 안정적인 방법으로 변경하는 것을 고려해야 합니다.
         if(routine.getRoutineMiddles().isEmpty() || !routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
@@ -173,14 +172,7 @@ public class MyRoutineListService {
 
         Optional<RoutineRecord> recordOpt = routineRecordRepository.findRecordByDateAndRoutine(user, routine, startOfDay, endOfDay);
 
-        if (recordOpt.isPresent()) {
-            // 이미 완료 기록이 있다면, 상태를 true로 업데이트만 합니다.
-            RoutineRecord existingRecord = recordOpt.get();
-            if (!existingRecord.isDoneCheck()) {
-                existingRecord.updateDoneCheck(true);
-            }
-        } else {
-            // 기록이 없을 때 새로 생성합니다.
+        if (recordOpt.isEmpty()) {
             RoutineRecord newRecord = RoutineRecord.builder()
                     .user(user)
                     .routine(routine)
@@ -188,6 +180,7 @@ public class MyRoutineListService {
                     .build();
             routineRecordRepository.save(newRecord);
         }
+
 
         return "루틴이 완료 처리되었습니다.";
     }
