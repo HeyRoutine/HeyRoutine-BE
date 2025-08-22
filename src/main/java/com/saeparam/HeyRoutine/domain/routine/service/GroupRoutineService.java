@@ -148,9 +148,9 @@ public interface GroupRoutineService {
      * @param id              현재 로그인한 사용자의 uuid
      * @param groupRoutineListId 방명록을 조회할 단체 루틴의 ID
      * @param pageable           페이지 번호, 페이지 크기 정보를 담은 객체
-     * @return {@link GuestbookResponseDto.GuestbookList} 방명록 목록 정보
+     * @return {@link GuestbookResponseDto.GuestbookInfo} 방명록 목록 정보
      */
-    PaginatedResponse<GuestbookResponseDto.GuestbookList> getGroupGuestbooks(UUID id, Long groupRoutineListId, Pageable pageable);
+    PaginatedResponse<GuestbookResponseDto.GuestbookInfo> getGroupGuestbooks(UUID id, Long groupRoutineListId, Pageable pageable);
 
     /**
      * 특정 단체 루틴에 방명록을 작성합니다.

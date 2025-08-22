@@ -66,6 +66,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_CATEGORY(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4224", "카테고리 형식이 올바르지 않습니다."),
 
     GUESTBOOK_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4031", "본인이 작성한 방명록만 수정/삭제할 수 있습니다."),
+    GUESTBOOK_GET_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "해당 단체루틴에 속한 사용자만 볼 수 있습니다."),
     ROUTINE_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "루틴 관리자만 수정/삭제할 수 있습니다."),
 
     ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4001","해당 Routine 을 찾을 수 업습니다. ")

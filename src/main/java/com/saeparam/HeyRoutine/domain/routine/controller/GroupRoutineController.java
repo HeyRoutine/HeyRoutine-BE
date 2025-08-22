@@ -180,11 +180,11 @@ public class GroupRoutineController {
 
     @GetMapping("/{groupRoutineListId}/guestbooks")
     @Operation(summary = "방명록 조회 API", description = "특정 단체루틴의 방명록을 페이지네이션으로 조회합니다.")
-    public ResponseEntity<ApiResponse<PaginatedResponse<GuestbookResponseDto.GuestbookList>>> getGroupGuestbooks(@RequestHeader("Authorization") String token,
+    public ResponseEntity<ApiResponse<PaginatedResponse<GuestbookResponseDto.GuestbookInfo>>> getGroupGuestbooks(@RequestHeader("Authorization") String token,
                                                                                               @PathVariable Long groupRoutineListId,
                                                                                               @PageableDefault(page = 0, size = 10) Pageable pageable) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
-        PaginatedResponse<GuestbookResponseDto.GuestbookList> response = groupRoutineService.getGroupGuestbooks(uuid, groupRoutineListId, pageable);
+        PaginatedResponse<GuestbookResponseDto.GuestbookInfo> response = groupRoutineService.getGroupGuestbooks(uuid, groupRoutineListId, pageable);
         if (response.items().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.noContent());
         }

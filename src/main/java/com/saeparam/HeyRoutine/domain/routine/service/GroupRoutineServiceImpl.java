@@ -7,13 +7,11 @@ import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseD
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
 import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.entity.Guestbook;
 import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineMiddleRepository;
-import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.*;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.error.handler.RoutineHandler;
@@ -44,6 +42,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
     private final UserInRoomRepository userInRoomRepository;
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
+    private final GuestbookRepository guestbookRepository;
     private final UserRepository userRepository;
 
     // 요일 변환 로직은 DayType.from(String)에 위임
@@ -126,6 +125,12 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                     .dayType(day)
                     .build());
         }
+
+        // 참여 정보 저장 -> 반장이지만 해당 그룹에 속해있으니
+        userInRoomRepository.save(UserInRoom.builder()
+                .groupRoutineList(groupRoutineList)
+                .user(user)
+                .build());
     }
 
     // 주석 다 쓰려니까 힘드네오 필요한 부분 간략할게 작성할게욥
@@ -183,6 +188,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
         groupRoutineMiddleRepository.deleteAllByRoutineList(groupRoutineList);
         userInRoomRepository.deleteAllByGroupRoutineList(groupRoutineList);
+        guestbookRepository.deleteAllByGroupRoutineList(groupRoutineList);
 
         // 단체 루틴 삭제
         groupRoutineListRepository.delete(groupRoutineList);
@@ -242,20 +248,84 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginatedResponse<GuestbookResponseDto.GuestbookList> getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
-        // TODO: Implement logic
-        return null;
+    public PaginatedResponse<GuestbookResponseDto.GuestbookInfo> getGroupGuestbooks(UUID userId, Long groupRoutineListId, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        // 해당 단체루틴에 속한 유저만 방명록 볼 수 있어야하니까 예외
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_GET_FORBIDDEN);
+        }
+
+        Page<Guestbook> guestbookPage = guestbookRepository.findByGroupRoutineList(groupRoutineList, pageable);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return PaginatedResponse.of(guestbookPage, gb -> GuestbookResponseDto.GuestbookInfo.builder()
+                .id(gb.getId())
+                .userId(gb.getUser().getId())
+                .nickname(gb.getUser().getNickname())
+                .profileImageUrl(gb.getUser().getProfileImage())
+                .content(gb.getContent())
+                .createdAt(gb.getCreatedDate() != null ? gb.getCreatedDate().format(formatter) : null)
+                .isWriter(gb.getUser().equals(user))
+                .build());
     }
 
     @Override
     public GuestbookResponseDto.GuestbookInfo createGroupGuestbook(UUID userId, Long groupRoutineListId, GuestbookRequestDto.Create guestbookDto) {
-        // TODO: Implement logic
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isMember = groupRoutineList.getUser().equals(user) ||
+                userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        Guestbook guestbook = Guestbook.builder()
+                .user(user)
+                .groupRoutineList(groupRoutineList)
+                .content(guestbookDto.getContent())
+                .build();
+        Guestbook saved = guestbookRepository.save(guestbook);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return GuestbookResponseDto.GuestbookInfo.builder()
+                .id(saved.getId())
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImage())
+                .content(saved.getContent())
+                .createdAt(saved.getCreatedDate() != null ? saved.getCreatedDate().format(formatter) : null)
+                .isWriter(true)
+                .build();
     }
 
     @Override
     public void deleteGroupGuestbook(UUID userId, Long groupRoutineListId, Long guestbookId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        Guestbook guestbook = guestbookRepository.findByIdAndGroupRoutineList(guestbookId, groupRoutineList)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GUESTBOOK_NOT_FOUND));
+
+        if (!guestbook.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        guestbookRepository.delete(guestbook);
     }
 
 
