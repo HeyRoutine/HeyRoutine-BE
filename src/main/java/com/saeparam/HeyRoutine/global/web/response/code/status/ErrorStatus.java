@@ -51,6 +51,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 루틴관련 응답
     MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
+
     EMOJI_NOT_FOUND(HttpStatus.NOT_FOUND,"ROUTINE4001","해당 이모지를 찾을 수 없습니다."),
     ROUTINE_TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4002", "해당 루틴 템플릿이 존재하지 않습니다."),
     GROUP_ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE4003", "해당 단체루틴이 존재하지 않습니다."),
@@ -65,7 +66,10 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_CATEGORY(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4224", "카테고리 형식이 올바르지 않습니다."),
 
     GUESTBOOK_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4031", "본인이 작성한 방명록만 수정/삭제할 수 있습니다."),
-    ROUTINE_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "루틴 관리자만 수정/삭제할 수 있습니다.")
+    ROUTINE_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "루틴 관리자만 수정/삭제할 수 있습니다."),
+
+    ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4001","해당 Routine 을 찾을 수 업습니다. ")
+
     ;
 
     private final HttpStatus httpStatus;
