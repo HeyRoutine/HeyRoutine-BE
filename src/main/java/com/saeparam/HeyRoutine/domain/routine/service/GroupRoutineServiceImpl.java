@@ -265,8 +265,36 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public GuestbookResponseDto.GuestbookInfo createGroupGuestbook(UUID userId, Long groupRoutineListId, GuestbookRequestDto.Create guestbookDto) {
-        // TODO: Implement logic
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isMember = groupRoutineList.getUser().equals(user) ||
+                userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        Guestbook guestbook = Guestbook.builder()
+                .user(user)
+                .groupRoutineList(groupRoutineList)
+                .content(guestbookDto.getContent())
+                .build();
+        Guestbook saved = guestbookRepository.save(guestbook);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return GuestbookResponseDto.GuestbookInfo.builder()
+                .id(saved.getId())
+                .userId(user.getId())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImage())
+                .content(saved.getContent())
+                .createdAt(saved.getCreatedDate() != null ? saved.getCreatedDate().format(formatter) : null)
+                .isWriter(true)
+                .build();
     }
 
     @Override
