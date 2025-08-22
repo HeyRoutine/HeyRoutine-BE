@@ -45,7 +45,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
     private final UserRepository userRepository;
 
-    // 요일 변환 로직은 DayType.from(String)에 위임합니다.
+    // 요일 변환 로직은 DayType.from(String)에 위임
 
     @Override
     @Transactional(readOnly = true)
@@ -88,19 +88,24 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void createGroupRoutine(UUID userId, GroupRoutineRequestDto.Create createDto) {
+        // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
+        // 2. 루틴 타입 유효성 검사
         RoutineType routineType = createDto.getRoutineType();
         if (routineType == null) {
             throw new RoutineHandler(ErrorStatus.INVALID_ROUTINE_TYPE);
         }
 
+        // 3. 시작 및 종료 시간 파싱
         LocalTime startTime = parseTime(createDto.getStartTime());
         LocalTime endTime = parseTime(createDto.getEndTime());
 
+        // 4. 요일 정보 변환
         List<DayType> dayTypes = convertDayTypes(createDto.getDaysOfWeek());
 
+        // 5. GroupRoutineList 생성
         GroupRoutineList groupRoutineList = GroupRoutineList.builder()
                 .user(user)
                 .routineType(routineType)
@@ -108,11 +113,12 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .description(createDto.getDescription())
                 .startTime(startTime)
                 .endTime(endTime)
-                .userCnt(1)
+                .userCnt(1) // 생성자 1명이니까~
                 .build();
 
         groupRoutineListRepository.save(groupRoutineList);
 
+        // 각 요일에 대해 GroupRoutineDays 엔티티 생성 및 저장
         for (DayType day : dayTypes) {
             groupRoutinDaysRepository.save(GroupRoutineDays.builder()
                     .groupRoutineList(groupRoutineList)
@@ -121,12 +127,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public GroupRoutineResponseDto.DetailResponse getGroupRoutineDetail(UUID userId, Long groupRoutineListId) {
-        // TODO: Implement logic
-        return null;
-    }
+    // 주석 다 쓰려니까 힘드네오 필요한 부분 간략할게 작성할게욥
 
     @Override
     public void updateGroupRoutine(UUID userId, Long groupRoutineListId, GroupRoutineRequestDto.Update updateDto) {
@@ -136,6 +137,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
 
+        // 403 - 루틴 권한 체크
         if (!groupRoutineList.getUser().equals(user)) {
             throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
         }
@@ -150,8 +152,10 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
         List<DayType> dayTypes = convertDayTypes(updateDto.getDaysOfWeek());
 
+        // 수정이니까 업데이트
         groupRoutineList.update(updateDto.getTitle(), updateDto.getDescription(), routineType, startTime, endTime);
 
+        // "기존 요일 정보 삭제 후" 새로 저장
         groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
         for (DayType day : dayTypes) {
             groupRoutinDaysRepository.save(GroupRoutineDays.builder()
@@ -169,20 +173,30 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
 
+        // 단체루틴 당사자만 삭제가능해야하니
         if (!groupRoutineList.getUser().equals(user)) {
             throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
         }
 
+        // 연관된 데이터 삭제 (참조 무결성을 위해 순서대로 삭제)
         groupRoutinDaysRepository.deleteAllByGroupRoutineList(groupRoutineList);
         groupRoutineMiddleRepository.deleteAllByRoutineList(groupRoutineList);
         userInRoomRepository.deleteAllByGroupRoutineList(groupRoutineList);
 
+        // 단체 루틴 삭제
         groupRoutineListRepository.delete(groupRoutineList);
     }
 
     @Override
     public void joinGroupRoutine(UUID userId, Long groupRoutineListId) {
         // TODO: Implement logic
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GroupRoutineResponseDto.DetailResponse getGroupRoutineDetail(UUID userId, Long groupRoutineListId) {
+        // TODO: Implement logic
+        return null;
     }
 
     @Override

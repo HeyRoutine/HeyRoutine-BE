@@ -8,13 +8,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Generic wrapper for paginated API responses.
+ * 페이징 처리된 API 응답 처리 Dto
  *
- * @param page       current page index (0-based)
- * @param pageSize   number of items per page
- * @param totalItems total number of items across all pages
- * @param totalPages total number of pages
- * @param items      list of items for the current page
+ * @param page       현재 페이지 번호 (0부터 시작)
+ * @param pageSize   페이지 당 아이템 수
+ * @param totalItems 모든 페이지에 걸친 총 아이템 수
+ * @param totalPages 총 페이지 수
+ * @param items      현재 페이지의 아이템 목록
+ *
  */
 @Builder
 public record PaginatedResponse<T>(
@@ -24,6 +25,7 @@ public record PaginatedResponse<T>(
         int totalPages,
         List<T> items
 ) {
+    // Page<E> -> PaginatedResponse<T> 생성
     public static <T> PaginatedResponse<T> of(Page<T> page) {
         return PaginatedResponse.<T>builder()
                 .page(page.getNumber())
@@ -34,6 +36,7 @@ public record PaginatedResponse<T>(
                 .build();
     }
 
+    // Page<E> -> PaginatedResponse<T> 매핑
     public static <E, T> PaginatedResponse<T> of(Page<E> page, Function<? super E, ? extends T> mapper) {
         List<T> mapped = page.getContent()
                 .stream()
