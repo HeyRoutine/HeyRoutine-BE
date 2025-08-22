@@ -42,4 +42,24 @@ public class GroupRoutineList extends BaseTime {
 
     @Column(name = "userCnt", nullable = false)
     private int userCnt;
+
+    // ################# 비즈니스 로직 메서드 #################
+
+    /**
+     * 단체 루틴의 기본 정보를 수정합니다.
+     *
+     * @param title       수정할 제목
+     * @param description 수정할 설명
+     * @param routineType 루틴 타입
+     * @param startTime   시작 시간
+     * @param endTime     종료 시간
+     */
+    public void update(String title, String description, RoutineType routineType,
+                       LocalTime startTime, LocalTime endTime) {
+        this.title = title;
+        this.description = description;
+        this.routineType = routineType;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 }
