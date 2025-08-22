@@ -255,6 +255,12 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
 
+        // 해당 단체루틴에 속한 유저만 방명록 볼 수 있어야하니까 예외
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_GET_FORBIDDEN);
+        }
+
         Page<Guestbook> guestbookPage = guestbookRepository.findByGroupRoutineList(groupRoutineList, pageable);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
