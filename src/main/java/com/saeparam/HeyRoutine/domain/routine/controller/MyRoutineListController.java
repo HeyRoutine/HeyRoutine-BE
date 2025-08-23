@@ -29,7 +29,6 @@ public class MyRoutineListController {
     private final MyRoutineListService myRoutineListService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // TODO :  루틴삭제시 테스트
     /**
      * 개인루틴 리스트 만들기
      */
@@ -69,9 +68,9 @@ public class MyRoutineListController {
      */
     @GetMapping("/list")
     @Operation(summary = "개인루틴 리스트 전체조회 API", description = "개인루틴 리스트 전체를 반환합니다 페이지네이션 10개씩 반환 정렬 및 정제후 반환. (시작시간과 끝시간 사이의 값이 아니면 실행 못하게 막아야할듯 프론트 부탁 !)")
-    public ResponseEntity<?> showMyRoutineList(@RequestHeader("Authorization") String token, @RequestParam DayType day, @RequestParam LocalDateTime localDateTime, @PageableDefault(size = 10, sort = "createdDate",direction = Sort.Direction.DESC) Pageable pageable){
+    public ResponseEntity<?> showMyRoutineList(@RequestHeader("Authorization") String token, @RequestParam DayType day, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @PageableDefault(size = 10, sort = "createdDate",direction = Sort.Direction.DESC) Pageable pageable){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showMyRoutineList(userId,day,localDateTime,pageable)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.showMyRoutineList(userId,day,date,pageable)));
     }
 
     /**
@@ -85,7 +84,7 @@ public class MyRoutineListController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineInMyRoutineList(userId,myRoutineListId,routineRequestDto)));
     }
 
-    @GetMapping("list/routine/{myRoutineListId}")
+    @GetMapping("/list/routine/{myRoutineListId}")
     @Operation(summary = "특정 날짜의 루틴 목록 상세 조회 API", description = "루틴 목록에 포함된 모든 루틴과 해당 날짜의 수행 여부를 함께 조회합니다.")
     public ResponseEntity<?> getRoutinesInListByDate(
             @RequestHeader("Authorization") String token,
@@ -109,7 +108,7 @@ public class MyRoutineListController {
     }
 
     /**
-     * 개인루틴 리스트 안 전체 루틴 삭제
+     * 개인루틴 리스트 안 루틴 삭제
      * id = 루틴Id
      */
     @DeleteMapping("/list/routine/{routineId}")

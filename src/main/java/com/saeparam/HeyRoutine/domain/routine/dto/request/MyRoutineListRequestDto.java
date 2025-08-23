@@ -1,11 +1,13 @@
 package com.saeparam.HeyRoutine.domain.routine.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.saeparam.HeyRoutine.domain.routine.entity.MyRoutineList;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -21,7 +23,8 @@ import java.util.List;
 @Builder
 public class MyRoutineListRequestDto {
     private String title;
-    private LocalDateTime startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
     private LocalTime startTime;
     private LocalTime endTime;
     private RoutineType routineType;
