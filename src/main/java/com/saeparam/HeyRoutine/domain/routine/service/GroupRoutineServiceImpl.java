@@ -279,6 +279,35 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     }
 
     @Override
+    public void leaveGroupRoutine(UUID userId, Long groupRoutineListId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 단체 루틴 조회
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+            .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        // 3. 방장은 탈퇴할 수 없음
+        if (groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        // 4. 참여자 여부 확인
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        // 5. 참여 정보 및 완료 기록 삭제
+        userInRoomRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
+        groupRoutineListDoneCheckRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
+
+        // 6. 인원 수 감소
+        groupRoutineList.decreaseUserCnt();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public GroupRoutineResponseDto.DetailResponse getGroupRoutineDetail(UUID userId, Long groupRoutineListId) {
         User user = userRepository.findById(userId)
