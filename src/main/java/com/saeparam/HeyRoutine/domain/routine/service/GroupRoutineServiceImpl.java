@@ -229,27 +229,33 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         boolean allDone = completedCount == routines.size();
 
         if (recordUpdateDto.getStatus()) {
+            // 전체 상세 루틴이 완료되지 않았다면 성공 기록 불가
             if (!allDone) {
                 throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_NOT_DONE);
             }
-        } else {
-            if (allDone) {
-                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
-            }
-        }
 
-        GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
+            // 성공 처리: 완료 여부가 없으면 저장, 있으면 true로 업데이트
+            GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
                 .findByGroupRoutineListAndUser(groupRoutineList, user)
                 .orElse(null);
 
-        if (doneCheck == null) {
-            groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
+            if (doneCheck == null) {
+                groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
                     .groupRoutineList(groupRoutineList)
                     .user(user)
-                    .doneCheck(recordUpdateDto.getStatus())
+                    .doneCheck(true)
                     .build());
+            } else {
+                doneCheck.updateDoneCheck(true);
+            }
         } else {
-            doneCheck.updateDoneCheck(recordUpdateDto.getStatus());
+            // 이미 모든 상세 루틴이 완료된 상태라면 실패 처리 불가
+            if (allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
+            }
+
+            // 실패 처리: 기존 성공 기록이 있다면 삭제
+            groupRoutineListDoneCheckRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
         }
     }
 
