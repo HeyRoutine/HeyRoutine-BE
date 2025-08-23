@@ -2,13 +2,11 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 
 import com.saeparam.HeyRoutine.domain.routine.dto.request.GroupRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.GuestbookRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.SubRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
-import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
-import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
-import com.saeparam.HeyRoutine.domain.routine.entity.Guestbook;
-import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
+import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.routine.repository.*;
@@ -24,13 +22,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +41,11 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
     private final GuestbookRepository guestbookRepository;
     private final UserRepository userRepository;
+    private final RoutineRepository routineRepository;
+    private final EmojiRepository emojiRepository;
+    private final TemplateRepository templateRepository;
+    private final RoutineRecordRepository routineRecordRepository;
+    private final GroupRoutineListDoneCheckRepository groupRoutineListDoneCheckRepository;
 
     // 요일 변환 로직은 DayType.from(String)에 위임
 
@@ -195,6 +197,63 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     }
 
     @Override
+    public void updateGroupRoutineRecord(UUID userId, Long groupRoutineListId, GroupRoutineRequestDto.RecordUpdate recordUpdateDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isMember = groupRoutineList.getUser().equals(user) ||
+                userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(groupRoutineList);
+        List<Routine> routines = middles.stream()
+                .map(GroupRoutineMiddle::getRoutine)
+                .collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        List<RoutineRecord> records = routineRecordRepository
+                .findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+
+        long completedCount = records.stream()
+                .filter(RoutineRecord::isDoneCheck)
+                .count();
+
+        boolean allDone = completedCount == routines.size();
+
+        if (recordUpdateDto.getStatus()) {
+            if (!allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_NOT_DONE);
+            }
+        } else {
+            if (allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
+            }
+        }
+
+        GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
+                .findByGroupRoutineListAndUser(groupRoutineList, user)
+                .orElse(null);
+
+        if (doneCheck == null) {
+            groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
+                    .groupRoutineList(groupRoutineList)
+                    .user(user)
+                    .doneCheck(recordUpdateDto.getStatus())
+                    .build());
+        } else {
+            doneCheck.updateDoneCheck(recordUpdateDto.getStatus());
+        }
+    }
+
+    @Override
     public void joinGroupRoutine(UUID userId, Long groupRoutineListId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -222,28 +281,242 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     @Override
     @Transactional(readOnly = true)
     public GroupRoutineResponseDto.DetailResponse getGroupRoutineDetail(UUID userId, Long groupRoutineListId) {
-        // TODO: Implement logic
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isAdmin = groupRoutineList.getUser().equals(user);
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        boolean isJoined = isAdmin || isMember;
+
+        // 기본 정보 구성
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        long routineNums = groupRoutineMiddleRepository.countByRoutineList(groupRoutineList);
+        long peopleNums = userInRoomRepository.countByGroupRoutineList(groupRoutineList);
+        List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(groupRoutineList)
+                .stream()
+                .map(day -> day.getDayType().name())
+                .collect(Collectors.toList());
+
+        GroupRoutineResponseDto.GroupRoutineInfo routineInfo = GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                .id(groupRoutineList.getId())
+                .routineType(groupRoutineList.getRoutineType())
+                .title(groupRoutineList.getTitle())
+                .description(groupRoutineList.getDescription())
+                .startTime(groupRoutineList.getStartTime().format(formatter))
+                .endTime(groupRoutineList.getEndTime().format(formatter))
+                .routineNums((int) routineNums)
+                .peopleNums((int) peopleNums)
+                .dayOfWeek(dayOfWeek)
+                .isJoined(isJoined)
+                .build();
+
+        // 상세 루틴 정보
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findWithRoutineByRoutineList(groupRoutineList);
+        List<Routine> routines = middles.stream().map(GroupRoutineMiddle::getRoutine).collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        Set<Long> completedIds;
+        if (isJoined && !routines.isEmpty()) {
+            List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+            completedIds = records.stream()
+                    .filter(RoutineRecord::isDoneCheck)
+                    .map(rr -> rr.getRoutine().getId())
+                    .collect(Collectors.toSet());
+        } else {
+            completedIds = new HashSet<>();
+        }
+
+        List<GroupRoutineResponseDto.RoutineInfo> routineInfos = routines.stream()
+                .map(r -> GroupRoutineResponseDto.RoutineInfo.builder()
+                        .id(r.getId())
+                        .emojiId(r.getEmoji().getId())
+                        .name(r.getName())
+                        .time(r.getTime())
+                        .isCompleted(isJoined ? completedIds.contains(r.getId()) : null)
+                        .build())
+                .collect(Collectors.toList());
+
+        // 참여자 정보
+        List<UserInRoom> members = userInRoomRepository.findByGroupRoutineList(groupRoutineList);
+        List<User> memberUsers = members.stream().map(UserInRoom::getUser).collect(Collectors.toList());
+
+        GroupRoutineResponseDto.GroupRoutineMemberInfo memberInfo;
+        if (!isJoined) {
+            List<String> profileUrls = memberUsers.stream()
+                    .map(User::getProfileImage)
+                    .filter(Objects::nonNull)
+                    .limit(8)
+                    .collect(Collectors.toList());
+            memberInfo = GroupRoutineResponseDto.GroupRoutineMemberInfo.builder()
+                    .profileImageUrl(profileUrls)
+                    .build();
+        } else {
+            int successCnt = 0;
+            int failedCnt = 0;
+            List<String> successUrls = new ArrayList<>();
+            List<String> failedUrls = new ArrayList<>();
+
+            for (User member : memberUsers) {
+                List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(member, startOfDay, endOfDay, routines);
+                long doneSize = records.stream().filter(RoutineRecord::isDoneCheck).map(rr -> rr.getRoutine().getId()).distinct().count();
+                boolean allCompleted = doneSize == routines.size() && !routines.isEmpty();
+
+                if (allCompleted) {
+                    successCnt++;
+                    if (successUrls.size() < 8 && member.getProfileImage() != null) {
+                        successUrls.add(member.getProfileImage());
+                    }
+                } else {
+                    failedCnt++;
+                    if (failedUrls.size() < 8 && member.getProfileImage() != null) {
+                        failedUrls.add(member.getProfileImage());
+                    }
+                }
+            }
+
+            memberInfo = GroupRoutineResponseDto.GroupRoutineMemberInfo.builder()
+                    .successPeopleNums(successCnt)
+                    .successPeopleProfileImageUrl(successUrls)
+                    .failedPeopleNums(failedCnt)
+                    .failedPeopleProfileImageUrl(failedUrls)
+                    .build();
+        }
+
+        return GroupRoutineResponseDto.DetailResponse.builder()
+                .isAdmin(isAdmin)
+                .groupRoutineInfo(routineInfo)
+                .routineInfos(routineInfos)
+                .groupRoutineMemberInfo(memberInfo)
+                .build();
     }
 
     @Override
     public void createGroupSubRoutines(UUID userId, Long groupRoutineListId, SubRoutineRequestDto.Create createDetailDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        for (SubRoutineRequestDto.Create.RoutineData routineData : createDetailDto.getRoutines()) {
+            if (routineData.getTemplateId() != null) {
+                templateRepository.findById(routineData.getTemplateId())
+                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
+            }
+
+            Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+
+            Routine routine = routineRepository.save(Routine.builder()
+                    .emoji(emoji)
+                    .name(routineData.getName())
+                    .time(routineData.getTime())
+                    .build());
+
+            groupRoutineMiddleRepository.save(GroupRoutineMiddle.builder()
+                    .routineList(groupRoutineList)
+                    .routine(routine)
+                    .build());
+        }
     }
 
     @Override
     public void updateGroupSubRoutines(UUID userId, Long groupRoutineListId, SubRoutineRequestDto.Update updateDetailDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        for (SubRoutineRequestDto.Update.RoutineData routineData : updateDetailDto.getRoutines()) {
+            GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineData.getRoutineId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+            if (routineData.getTemplateId() != null) {
+                templateRepository.findById(routineData.getTemplateId())
+                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
+            }
+
+            Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+
+            RoutineRequestDto routineRequestDto = RoutineRequestDto.builder()
+                    .routineName(routineData.getName())
+                    .time(routineData.getTime())
+                    .build();
+
+            middle.getRoutine().update(routineRequestDto, emoji);
+        }
     }
 
     @Override
     public void deleteGroupSubRoutines(UUID userId, Long groupRoutineListId, Long routineId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+        Routine routine = middle.getRoutine();
+
+        routineRecordRepository.deleteAllByRoutine(routine);
+        groupRoutineMiddleRepository.delete(middle);
+        routineRepository.delete(routine);
     }
 
     @Override
     public void updateGroupRoutineStatus(UUID userId, Long groupRoutineListId, Long routineId, SubRoutineRequestDto.StatusUpdate statusDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isAdmin = groupRoutineList.getUser().equals(user);
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isAdmin && !isMember) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+        Routine routine = middle.getRoutine();
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        RoutineRecord record = routineRecordRepository.findRecordByDateAndRoutine(user, routine, startOfDay, endOfDay)
+                .orElse(RoutineRecord.builder()
+                        .user(user)
+                        .routine(routine)
+                        .doneCheck(statusDto.getStatus())
+                        .build());
+
+        record.updateDoneCheck(statusDto.getStatus());
+        routineRecordRepository.save(record);
     }
 
     @Override

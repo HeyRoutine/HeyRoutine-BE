@@ -133,6 +133,17 @@ public class GroupRoutineController {
     }
 
 
+    @PatchMapping("/{groupRoutineListId}")
+    @Operation(summary = "단체루틴 성공/실패 기록 API", description = "특정 단체루틴의 성공/실패 여부를 기록합니다.")
+    public ResponseEntity<ApiResponse<Void>> updateGroupRoutineRecord(@RequestHeader("Authorization") String token,
+                                                                      @PathVariable Long groupRoutineListId,
+                                                                      @Valid @RequestBody GroupRoutineRequestDto.RecordUpdate recordUpdateDto) {
+        UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
+        groupRoutineService.updateGroupRoutineRecord(uuid, groupRoutineListId, recordUpdateDto);
+        return ResponseEntity.ok(ApiResponse.onSuccess(null, SuccessStatus.UPDATE_SUCCESS.getMessage()));
+    }
+
+
     @PostMapping("/{groupRoutineListId}/sub-routines")
     @Operation(summary = "단체루틴 상세 생성 API", description = "특정 단체루틴에 상세 루틴들을 생성합니다.")
     public ResponseEntity<ApiResponse<Void>> createGroupSubRoutines(@RequestHeader("Authorization") String token,
