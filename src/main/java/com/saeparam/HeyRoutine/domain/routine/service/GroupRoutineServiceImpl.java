@@ -374,7 +374,35 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void updateGroupSubRoutines(UUID userId, Long groupRoutineListId, SubRoutineRequestDto.Update updateDetailDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        for (SubRoutineRequestDto.Update.RoutineData routineData : updateDetailDto.getRoutines()) {
+            GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineData.getRoutineId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+            if (routineData.getTemplateId() != null) {
+                templateRepository.findById(routineData.getTemplateId())
+                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
+            }
+
+            Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+
+            RoutineRequestDto routineRequestDto = RoutineRequestDto.builder()
+                    .routineName(routineData.getName())
+                    .time(routineData.getTime())
+                    .build();
+
+            middle.getRoutine().update(routineRequestDto, emoji);
+        }
     }
 
     @Override
