@@ -229,27 +229,33 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         boolean allDone = completedCount == routines.size();
 
         if (recordUpdateDto.getStatus()) {
+            // 전체 상세 루틴이 완료되지 않았다면 성공 기록 불가
             if (!allDone) {
                 throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_NOT_DONE);
             }
-        } else {
-            if (allDone) {
-                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
-            }
-        }
 
-        GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
+            // 성공 처리: 완료 여부가 없으면 저장, 있으면 true로 업데이트
+            GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
                 .findByGroupRoutineListAndUser(groupRoutineList, user)
                 .orElse(null);
 
-        if (doneCheck == null) {
-            groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
+            if (doneCheck == null) {
+                groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
                     .groupRoutineList(groupRoutineList)
                     .user(user)
-                    .doneCheck(recordUpdateDto.getStatus())
+                    .doneCheck(true)
                     .build());
+            } else {
+                doneCheck.updateDoneCheck(true);
+            }
         } else {
-            doneCheck.updateDoneCheck(recordUpdateDto.getStatus());
+            // 이미 모든 상세 루틴이 완료된 상태라면 실패 처리 불가
+            if (allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
+            }
+
+            // 실패 처리: 기존 성공 기록이 있다면 삭제
+            groupRoutineListDoneCheckRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
         }
     }
 
@@ -276,6 +282,35 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
         // 인원 수 +1 해주기
         groupRoutineList.increaseUserCnt();
+    }
+
+    @Override
+    public void leaveGroupRoutine(UUID userId, Long groupRoutineListId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 단체 루틴 조회
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+            .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        // 3. 방장은 탈퇴할 수 없음
+        if (groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        // 4. 참여자 여부 확인
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        // 5. 참여 정보 및 완료 기록 삭제
+        userInRoomRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
+        groupRoutineListDoneCheckRepository.deleteByGroupRoutineListAndUser(groupRoutineList, user);
+
+        // 6. 인원 수 감소
+        groupRoutineList.decreaseUserCnt();
     }
 
     @Override
@@ -409,10 +444,6 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         }
 
         for (SubRoutineRequestDto.Create.RoutineData routineData : createDetailDto.getRoutines()) {
-            if (routineData.getTemplateId() != null) {
-                templateRepository.findById(routineData.getTemplateId())
-                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
-            }
 
             Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
@@ -445,11 +476,6 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         for (SubRoutineRequestDto.Update.RoutineData routineData : updateDetailDto.getRoutines()) {
             GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineData.getRoutineId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-
-            if (routineData.getTemplateId() != null) {
-                templateRepository.findById(routineData.getTemplateId())
-                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
-            }
 
             Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));

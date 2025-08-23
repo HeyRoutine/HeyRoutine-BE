@@ -43,4 +43,12 @@ public interface GroupRoutineListDoneCheckRepository extends JpaRepository<Group
      * @param groupRoutineList 단체 루틴
      */
     void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
+
+    /**
+     * 특정 단체 루틴과 사용자에 대한 완료 여부 기록을 삭제합니다.
+     *
+     * @param groupRoutineList 단체 루틴
+     * @param user             기록을 삭제할 사용자
+     */
+    void deleteByGroupRoutineListAndUser(GroupRoutineList groupRoutineList, User user);
 }
