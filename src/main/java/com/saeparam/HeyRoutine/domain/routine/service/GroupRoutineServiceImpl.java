@@ -2,13 +2,11 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 
 import com.saeparam.HeyRoutine.domain.routine.dto.request.GroupRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.GuestbookRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.SubRoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GuestbookResponseDto;
-import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineDays;
-import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
-import com.saeparam.HeyRoutine.domain.routine.entity.Guestbook;
-import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
+import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.domain.routine.repository.*;
@@ -24,13 +22,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +41,10 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final GroupRoutinDaysRepository groupRoutinDaysRepository;
     private final GuestbookRepository guestbookRepository;
     private final UserRepository userRepository;
+    private final RoutineRepository routineRepository;
+    private final EmojiRepository emojiRepository;
+    private final TemplateRepository templateRepository;
+    private final RoutineRecordRepository routineRecordRepository;
 
     // 요일 변환 로직은 DayType.from(String)에 위임
 
@@ -222,8 +223,119 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     @Override
     @Transactional(readOnly = true)
     public GroupRoutineResponseDto.DetailResponse getGroupRoutineDetail(UUID userId, Long groupRoutineListId) {
-        // TODO: Implement logic
-        return null;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isAdmin = groupRoutineList.getUser().equals(user);
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        boolean isJoined = isAdmin || isMember;
+
+        // 기본 정보 구성
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        long routineNums = groupRoutineMiddleRepository.countByRoutineList(groupRoutineList);
+        long peopleNums = userInRoomRepository.countByGroupRoutineList(groupRoutineList);
+        List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(groupRoutineList)
+                .stream()
+                .map(day -> day.getDayType().name())
+                .collect(Collectors.toList());
+
+        GroupRoutineResponseDto.GroupRoutineInfo routineInfo = GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                .id(groupRoutineList.getId())
+                .routineType(groupRoutineList.getRoutineType())
+                .title(groupRoutineList.getTitle())
+                .description(groupRoutineList.getDescription())
+                .startTime(groupRoutineList.getStartTime().format(formatter))
+                .endTime(groupRoutineList.getEndTime().format(formatter))
+                .routineNums((int) routineNums)
+                .peopleNums((int) peopleNums)
+                .dayOfWeek(dayOfWeek)
+                .isJoined(isJoined)
+                .build();
+
+        // 상세 루틴 정보
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findWithRoutineByRoutineList(groupRoutineList);
+        List<Routine> routines = middles.stream().map(GroupRoutineMiddle::getRoutine).collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        Set<Long> completedIds;
+        if (isJoined && !routines.isEmpty()) {
+            List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+            completedIds = records.stream()
+                    .filter(RoutineRecord::isDoneCheck)
+                    .map(rr -> rr.getRoutine().getId())
+                    .collect(Collectors.toSet());
+        } else {
+            completedIds = new HashSet<>();
+        }
+
+        List<GroupRoutineResponseDto.RoutineInfo> routineInfos = routines.stream()
+                .map(r -> GroupRoutineResponseDto.RoutineInfo.builder()
+                        .id(r.getId())
+                        .emojiId(r.getEmoji().getId())
+                        .name(r.getName())
+                        .time(r.getTime())
+                        .isCompleted(isJoined ? completedIds.contains(r.getId()) : null)
+                        .build())
+                .collect(Collectors.toList());
+
+        // 참여자 정보
+        List<UserInRoom> members = userInRoomRepository.findByGroupRoutineList(groupRoutineList);
+        List<User> memberUsers = members.stream().map(UserInRoom::getUser).collect(Collectors.toList());
+
+        GroupRoutineResponseDto.GroupRoutineMemberInfo memberInfo;
+        if (!isJoined) {
+            List<String> profileUrls = memberUsers.stream()
+                    .map(User::getProfileImage)
+                    .filter(Objects::nonNull)
+                    .limit(8)
+                    .collect(Collectors.toList());
+            memberInfo = GroupRoutineResponseDto.GroupRoutineMemberInfo.builder()
+                    .profileImageUrl(profileUrls)
+                    .build();
+        } else {
+            int successCnt = 0;
+            int failedCnt = 0;
+            List<String> successUrls = new ArrayList<>();
+            List<String> failedUrls = new ArrayList<>();
+
+            for (User member : memberUsers) {
+                List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(member, startOfDay, endOfDay, routines);
+                long doneSize = records.stream().filter(RoutineRecord::isDoneCheck).map(rr -> rr.getRoutine().getId()).distinct().count();
+                boolean allCompleted = doneSize == routines.size() && !routines.isEmpty();
+
+                if (allCompleted) {
+                    successCnt++;
+                    if (successUrls.size() < 8 && member.getProfileImage() != null) {
+                        successUrls.add(member.getProfileImage());
+                    }
+                } else {
+                    failedCnt++;
+                    if (failedUrls.size() < 8 && member.getProfileImage() != null) {
+                        failedUrls.add(member.getProfileImage());
+                    }
+                }
+            }
+
+            memberInfo = GroupRoutineResponseDto.GroupRoutineMemberInfo.builder()
+                    .successPeopleNums(successCnt)
+                    .successPeopleProfileImageUrl(successUrls)
+                    .failedPeopleNums(failedCnt)
+                    .failedPeopleProfileImageUrl(failedUrls)
+                    .build();
+        }
+
+        return GroupRoutineResponseDto.DetailResponse.builder()
+                .isAdmin(isAdmin)
+                .groupRoutineInfo(routineInfo)
+                .routineInfos(routineInfos)
+                .groupRoutineMemberInfo(memberInfo)
+                .build();
     }
 
     @Override

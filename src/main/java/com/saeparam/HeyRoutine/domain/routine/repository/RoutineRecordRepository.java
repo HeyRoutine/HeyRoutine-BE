@@ -33,6 +33,13 @@ public interface RoutineRecordRepository extends JpaRepository<RoutineRecord, Lo
             LocalDateTime endOfDay
     );
 
+    /**
+     * 특정 루틴에 대한 모든 수행 기록을 삭제합니다.
+     *
+     * @param routine 삭제 대상 루틴
+     */
+    void deleteAllByRoutine(Routine routine);
+
 
 }
 
