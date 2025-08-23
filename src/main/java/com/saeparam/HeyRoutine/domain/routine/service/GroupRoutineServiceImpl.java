@@ -444,10 +444,6 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         }
 
         for (SubRoutineRequestDto.Create.RoutineData routineData : createDetailDto.getRoutines()) {
-            if (routineData.getTemplateId() != null) {
-                templateRepository.findById(routineData.getTemplateId())
-                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
-            }
 
             Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
@@ -480,11 +476,6 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         for (SubRoutineRequestDto.Update.RoutineData routineData : updateDetailDto.getRoutines()) {
             GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineData.getRoutineId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-
-            if (routineData.getTemplateId() != null) {
-                templateRepository.findById(routineData.getTemplateId())
-                        .orElseThrow(() -> new RoutineHandler(ErrorStatus.ROUTINE_TEMPLATE_NOT_FOUND));
-            }
 
             Emoji emoji = emojiRepository.findById(routineData.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
