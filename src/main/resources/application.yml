@@ -27,6 +27,7 @@ spring:
 server:
   servlet:
     context-path: /api/v1
+  port: 9090
 
 mail:
   username: ${mail.username}
