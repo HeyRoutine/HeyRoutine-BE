@@ -407,7 +407,24 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void deleteGroupSubRoutines(UUID userId, Long groupRoutineListId, Long routineId) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        if (!groupRoutineList.getUser().equals(user)) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+        Routine routine = middle.getRoutine();
+
+        routineRecordRepository.deleteAllByRoutine(routine);
+        groupRoutineMiddleRepository.delete(middle);
+        routineRepository.delete(routine);
     }
 
     @Override
