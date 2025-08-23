@@ -46,4 +46,22 @@ public class RoutineCommonController {
         }
         return ResponseEntity.ok(ApiResponse.onSuccess(response, "템플릿 목록 조회 성공"));
     }
+
+    @GetMapping("/emoji")
+    @Operation(summary = "이모지 목록 조회 API", description = "카테고리에 따른 이모지 목록을 조회합니다.")
+    public ResponseEntity<ApiResponse<CommonResponseDto.EmojiList>> getRoutineEmojis(
+            @RequestParam(required = false) String category) {
+
+        Category categoryEnum = Category.from(category);
+        if (category != null && categoryEnum == null) {
+            throw new RoutineHandler(ErrorStatus.INVALID_CATEGORY);
+        }
+
+        CommonResponseDto.EmojiList response = routineCommonService.getRoutineEmojis(categoryEnum);
+
+        if (response.getItems().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.of(SuccessStatus.NO_CONTENT, response));
+        }
+        return ResponseEntity.ok(ApiResponse.onSuccess(response, "이모지 목록 조회 성공"));
+    }
 }

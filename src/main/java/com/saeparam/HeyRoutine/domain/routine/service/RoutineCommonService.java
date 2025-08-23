@@ -26,4 +26,12 @@ public interface RoutineCommonService {
      * @return 페이징 처리된 템플릿 정보
      */
     PaginatedResponse<CommonResponseDto.TemplateInfo> getRoutineTemplates(Category category, Pageable pageable);
+
+    /**
+     * 카테고리에 따라 이모지 목록을 조회합니다.
+     *
+     * @param category 필터링할 카테고리 (null일 경우 전체 조회)
+     * @return 이모지 목록 정보
+     */
+    CommonResponseDto.EmojiList getRoutineEmojis(Category category);
 }

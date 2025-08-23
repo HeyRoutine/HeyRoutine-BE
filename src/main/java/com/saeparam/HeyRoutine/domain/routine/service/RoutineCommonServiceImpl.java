@@ -2,8 +2,10 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 
 
 import com.saeparam.HeyRoutine.domain.routine.dto.response.CommonResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.entity.Emoji;
 import com.saeparam.HeyRoutine.domain.routine.entity.Template;
 import com.saeparam.HeyRoutine.domain.routine.enums.Category;
+import com.saeparam.HeyRoutine.domain.routine.repository.EmojiRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.TemplateRepository;
 import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <h2>RoutineCommonServiceImpl</h2>
@@ -22,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoutineCommonServiceImpl implements RoutineCommonService {
 
     private final TemplateRepository templateRepository;
+    private final EmojiRepository emojiRepository;
 
     @Override
     public PaginatedResponse<CommonResponseDto.TemplateInfo> getRoutineTemplates(Category category, Pageable pageable) {
@@ -35,5 +41,23 @@ public class RoutineCommonServiceImpl implements RoutineCommonService {
                 .name(template.getName())
                 .content(template.getContent())
                 .build());
+    }
+
+    @Override
+    public CommonResponseDto.EmojiList getRoutineEmojis(Category category) {
+        List<Emoji> emojis = (category == null)
+                ? emojiRepository.findAll()
+                : emojiRepository.findByCategory(category);
+
+        List<CommonResponseDto.EmojiInfo> items = emojis.stream()
+                .map(e -> CommonResponseDto.EmojiInfo.builder()
+                        .emojiId(e.getId())
+                        .emojiUrl(e.getEmojiUrl())
+                        .build())
+                .collect(Collectors.toList());
+
+        return CommonResponseDto.EmojiList.builder()
+                .items(items)
+                .build();
     }
 }
