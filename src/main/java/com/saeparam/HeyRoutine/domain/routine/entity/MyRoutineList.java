@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashSet;
@@ -37,7 +38,7 @@ public class MyRoutineList extends BaseTime {
     private String title;
 
     @Column(name = "startDate", nullable = false)
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "startTime", nullable = false)
     private LocalTime startTime;

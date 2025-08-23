@@ -37,6 +37,9 @@ public class Routine extends BaseTime {
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MyRoutineMiddle> routineMiddles;
 
+    @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoutineRecord> routineRecords;
+
     public void update(RoutineRequestDto routineRequestDto,Emoji emoji) {
         this.emoji=emoji;
         this.name=routineRequestDto.getRoutineName();
