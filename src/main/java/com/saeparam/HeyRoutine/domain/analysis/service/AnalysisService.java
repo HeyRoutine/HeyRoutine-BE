@@ -53,12 +53,12 @@ public class AnalysisService {
         // 4. 조회 성능을 높이기 위해, 완료된 기록들을 Map 형태로 가공합니다.
         // Key: 루틴 목록 ID, Value: 해당 루틴을 완료한 날짜들의 Set
         Map<Long, Set<LocalDate>> myCompletedMap = myRecords.stream()
-                .filter(MyRoutineListRecord::isDoneCheck) // 완료된 기록만 필터링
+//                .filter(MyRoutineListRecord::isDoneCheck) // 완료된 기록만 필터링
                 .collect(Collectors.groupingBy(r -> r.getMyRoutineList().getId(), // 루틴 목록 ID로 그룹화
                         Collectors.mapping(r -> r.getCreatedDate().toLocalDate(), Collectors.toSet()))); // 날짜만 추출하여 Set으로 만듦
 
         Map<Long, Set<LocalDate>> groupCompletedMap = groupRecords.stream()
-                .filter(GroupRoutineListDoneCheck::isDoneCheck)
+//                .filter(GroupRoutineListDoneCheck::isDoneCheck)
                 .collect(Collectors.groupingBy(r -> r.getGroupRoutineList().getId(),
                         Collectors.mapping(r -> r.getCreatedDate().toLocalDate(), Collectors.toSet())));
 
