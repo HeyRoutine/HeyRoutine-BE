@@ -27,4 +27,17 @@ public class GroupRoutineListDoneCheck extends BaseTime {
 
     @Column(name = "done_check", nullable = false)
     private boolean doneCheck;
+
+
+    // ################# 비즈니스 로직 메서드 #################
+
+    /**
+     * 완료 여부를 업데이트합니다.
+     *
+     * @param doneCheck true: 성공, false: 실패
+     */
+    public void updateDoneCheck(boolean doneCheck) {
+        this.doneCheck = doneCheck;
+    }
+
 }

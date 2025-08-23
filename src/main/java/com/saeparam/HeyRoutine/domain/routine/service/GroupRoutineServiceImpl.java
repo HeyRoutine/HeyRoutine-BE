@@ -45,6 +45,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final EmojiRepository emojiRepository;
     private final TemplateRepository templateRepository;
     private final RoutineRecordRepository routineRecordRepository;
+    private final GroupRoutineListDoneCheckRepository groupRoutineListDoneCheckRepository;
 
     // 요일 변환 로직은 DayType.from(String)에 위임
 
@@ -193,6 +194,63 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
         // 단체 루틴 삭제
         groupRoutineListRepository.delete(groupRoutineList);
+    }
+
+    @Override
+    public void updateGroupRoutineRecord(UUID userId, Long groupRoutineListId, GroupRoutineRequestDto.RecordUpdate recordUpdateDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isMember = groupRoutineList.getUser().equals(user) ||
+                userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isMember) {
+            throw new RoutineHandler(ErrorStatus.GUESTBOOK_FORBIDDEN);
+        }
+
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(groupRoutineList);
+        List<Routine> routines = middles.stream()
+                .map(GroupRoutineMiddle::getRoutine)
+                .collect(Collectors.toList());
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        List<RoutineRecord> records = routineRecordRepository
+                .findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+
+        long completedCount = records.stream()
+                .filter(RoutineRecord::isDoneCheck)
+                .count();
+
+        boolean allDone = completedCount == routines.size();
+
+        if (recordUpdateDto.getStatus()) {
+            if (!allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_NOT_DONE);
+            }
+        } else {
+            if (allDone) {
+                throw new RoutineHandler(ErrorStatus.GROUP_ROUTINE_DETAIL_ALREADY_DONE);
+            }
+        }
+
+        GroupRoutineListDoneCheck doneCheck = groupRoutineListDoneCheckRepository
+                .findByGroupRoutineListAndUser(groupRoutineList, user)
+                .orElse(null);
+
+        if (doneCheck == null) {
+            groupRoutineListDoneCheckRepository.save(GroupRoutineListDoneCheck.builder()
+                    .groupRoutineList(groupRoutineList)
+                    .user(user)
+                    .doneCheck(recordUpdateDto.getStatus())
+                    .build());
+        } else {
+            doneCheck.updateDoneCheck(recordUpdateDto.getStatus());
+        }
     }
 
     @Override

@@ -37,6 +37,14 @@ public interface GroupRoutineMiddleRepository extends JpaRepository<GroupRoutine
     List<GroupRoutineMiddle> findWithRoutineByRoutineList(@Param("routineList") GroupRoutineList routineList);
 
     /**
+     * 주어진 단체 루틴에 속한 모든 상세 루틴을 조회합니다.
+     *
+     * @param routineList 상세 루틴의 상위 단체 루틴
+     * @return 상세 루틴 목록
+     */
+    List<GroupRoutineMiddle> findByRoutineList(GroupRoutineList routineList);
+
+    /**
      * 특정 단체 루틴에 속한 특정 상세 루틴을 조회합니다.
      *
      * @param routineList 단체 루틴

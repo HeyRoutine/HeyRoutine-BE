@@ -64,6 +64,8 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_ROUTINE_TYPE(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4222", "루틴 타입은 DAILY 또는 FINANCE만 가능합니다."),
     INVALID_DAY_OF_WEEK(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4223", "요일 데이터가 중복되거나 올바르지 않습니다."),
     INVALID_CATEGORY(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4224", "카테고리 형식이 올바르지 않습니다."),
+    GROUP_ROUTINE_DETAIL_NOT_DONE(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4225", "단체루틴의 상세 루틴이 모두 성공 상태가 아닙니다."),
+    GROUP_ROUTINE_DETAIL_ALREADY_DONE(HttpStatus.UNPROCESSABLE_ENTITY, "ROUTINE4226", "단체루틴의 상세 루틴이 이미 모두 성공 상태입니다."),
 
     GUESTBOOK_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4031", "본인이 작성한 방명록만 수정/삭제할 수 있습니다."),
     GUESTBOOK_GET_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "해당 단체루틴에 속한 사용자만 볼 수 있습니다."),
