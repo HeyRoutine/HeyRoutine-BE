@@ -1,0 +1,49 @@
+spring:
+  profiles:
+    active: prod
+
+  datasource:
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    driver-class-name: ${spring.datasource.driver-class-name}
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${spring.data.redis.host}
+      port: ${spring.data.redis.port}
+      password: ${spring.data.redis.password}
+
+server:
+  servlet:
+    context-path: /api/v1
+
+mail:
+  username: ${mail.username}
+  password: ${mail.password}
+
+jwt:
+  secret: ${jwt.secret}
+
+cloud:
+  aws:
+    region:
+      static: ${cloud.aws.region.static}
+    s3:
+      access-key: ${cloud.aws.s3.access-key}
+      secret-key: ${cloud.aws.s3.secret-key}
+
+bank:
+  base-url: ${bank.base-url}
+  api-version: ${bank.api-version}
+  api-key: ${bank.api-key}
