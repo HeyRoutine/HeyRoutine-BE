@@ -429,7 +429,36 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     public void updateGroupRoutineStatus(UUID userId, Long groupRoutineListId, Long routineId, SubRoutineRequestDto.StatusUpdate statusDto) {
-        // TODO: Implement logic
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        GroupRoutineList groupRoutineList = groupRoutineListRepository.findById(groupRoutineListId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.GROUP_ROUTINE_NOT_FOUND));
+
+        boolean isAdmin = groupRoutineList.getUser().equals(user);
+        boolean isMember = userInRoomRepository.existsByGroupRoutineListAndUser(groupRoutineList, user);
+        if (!isAdmin && !isMember) {
+            throw new RoutineHandler(ErrorStatus.ROUTINE_FORBIDDEN);
+        }
+
+        GroupRoutineMiddle middle = groupRoutineMiddleRepository.findByRoutineListAndRoutineId(groupRoutineList, routineId)
+                .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+
+        Routine routine = middle.getRoutine();
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        RoutineRecord record = routineRecordRepository.findRecordByDateAndRoutine(user, routine, startOfDay, endOfDay)
+                .orElse(RoutineRecord.builder()
+                        .user(user)
+                        .routine(routine)
+                        .doneCheck(statusDto.getStatus())
+                        .build());
+
+        record.updateDoneCheck(statusDto.getStatus());
+        routineRecordRepository.save(record);
     }
 
     @Override
