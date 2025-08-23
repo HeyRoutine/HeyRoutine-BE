@@ -5,6 +5,9 @@ import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineListDoneCheck;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,4 +46,6 @@ public interface GroupRoutineListDoneCheckRepository extends JpaRepository<Group
      * @param groupRoutineList 단체 루틴
      */
     void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
+
+    List<GroupRoutineListDoneCheck> findByUserAndCreatedDateBetween(User user, LocalDateTime start, LocalDateTime end);
 }
