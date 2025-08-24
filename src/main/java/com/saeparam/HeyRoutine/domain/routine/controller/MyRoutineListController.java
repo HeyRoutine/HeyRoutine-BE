@@ -79,9 +79,9 @@ public class MyRoutineListController {
      */
     @PostMapping("/list/routine/{myRoutineListId}")
     @Operation(summary = "개인루틴 리스트안에 루틴만들기 API", description = "개인루틴 리스트안에 루틴을 만듭니다.")
-    public ResponseEntity<?> makeRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId, @RequestBody RoutineRequestDto routineRequestDto){
+    public ResponseEntity<?> makeRoutineToMyRoutineList(@RequestHeader("Authorization") String token, @PathVariable Long myRoutineListId, @RequestBody List<RoutineRequestDto> routineRequestDtoList){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineInMyRoutineList(userId,myRoutineListId,routineRequestDto)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.makeRoutineInMyRoutineList(userId,myRoutineListId,routineRequestDtoList)));
     }
 
     @GetMapping("/list/routine/{myRoutineListId}")
