@@ -18,4 +18,6 @@ def health():
 @app.post("/recommend")
 def do_recommend(req: RecReq):
     df = recommend(MODEL, req.user_id, req.top_k, req.exclude_already_planned, req.allow_owned)
-    return {"items": df.to_dict(orient="records")}
+    return {"items": df["routine_name"].tolist()}
+
+
