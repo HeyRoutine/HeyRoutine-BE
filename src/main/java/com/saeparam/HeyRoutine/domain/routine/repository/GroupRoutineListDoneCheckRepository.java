@@ -6,7 +6,6 @@ import com.saeparam.HeyRoutine.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,4 +47,12 @@ public interface GroupRoutineListDoneCheckRepository extends JpaRepository<Group
     void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
 
     List<GroupRoutineListDoneCheck> findByUserAndCreatedDateBetween(User user, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * 특정 단체 루틴과 사용자에 대한 완료 여부 기록을 삭제합니다.
+     *
+     * @param groupRoutineList 단체 루틴
+     * @param user             기록을 삭제할 사용자
+     */
+    void deleteByGroupRoutineListAndUser(GroupRoutineList groupRoutineList, User user);
 }

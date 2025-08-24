@@ -38,6 +38,14 @@ public interface UserInRoomRepository extends JpaRepository<UserInRoom, Long> {
     void deleteAllByGroupRoutineList(GroupRoutineList groupRoutineList);
 
     /**
+     * 특정 단체 루틴에서 특정 사용자의 참여 정보를 삭제합니다.
+     *
+     * @param groupRoutineList 단체 루틴
+     * @param user             탈퇴할 사용자
+     */
+    void deleteByGroupRoutineListAndUser(GroupRoutineList groupRoutineList, User user);
+
+    /**
      * 단체 루틴에 속한 모든 참여자 정보를 조회합니다.
      *
      * @param groupRoutineList 단체 루틴

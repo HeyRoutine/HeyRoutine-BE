@@ -79,5 +79,15 @@ public class GroupRoutineList extends BaseTime {
         this.userCnt++;
     }
 
+    /**
+     * 단체 루틴에 참여한 인원 수를 1 감소시킵니다.
+     * 음수가 되지 않도록 최소 0으로 유지합니다.
+     */
+    public void decreaseUserCnt() {
+        if (this.userCnt > 0) {
+            this.userCnt--;
+        }
+    }
+
 
 }

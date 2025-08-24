@@ -53,9 +53,6 @@ public class SubRoutineRequestDto {
         @Schema(description = "생성할 개별 상세 루틴 정보")
         public static class RoutineData {
 
-            @Schema(description = "연결된 템플릿 ID (선택)", example = "1")
-            private Long templateId;
-
             @NotNull(message = "이모지 ID는 필수입니다.")
             @Schema(description = "선택한 이모지 ID", example = "1")
             private Long emojiId;
@@ -100,9 +97,6 @@ public class SubRoutineRequestDto {
             @NotNull(message = "루틴 ID는 필수입니다.")
             @Schema(description = "수정할 루틴 ID", example = "1")
             private Long routineId;
-
-            @Schema(description = "연결된 템플릿 ID (선택)", example = "1")
-            private Long templateId;
 
             @NotNull(message = "이모지 ID는 필수입니다.")
             @Schema(description = "선택한 이모지 ID", example = "1")
