@@ -7,6 +7,8 @@ import lombok.*;
 
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -42,6 +44,13 @@ public class GroupRoutineList extends BaseTime {
 
     @Column(name = "userCnt", nullable = false)
     private int userCnt;
+
+    @OneToMany(mappedBy = "groupRoutineList")
+    private Set<UserInRoom> userInRooms = new HashSet<>();
+
+    // GroupRoutineDays와의 양방향 연관관계 설정
+    @OneToMany(mappedBy = "groupRoutineList")
+    private Set<GroupRoutineDays> groupRoutineDays = new HashSet<>();
 
     // ################# 비즈니스 로직 메서드 #################
 
@@ -79,4 +88,6 @@ public class GroupRoutineList extends BaseTime {
             this.userCnt--;
         }
     }
+
+
 }
