@@ -93,6 +93,29 @@ public interface GroupRoutineService {
     void joinGroupRoutine(UUID id, Long groupRoutineListId);
 
     /**
+     * 단체 루틴에서 탈퇴합니다.
+     * <p>
+     * 방장(단체 루틴 생성자)은 탈퇴할 수 없으며, 참여중인 사용자만 가능합니다.
+     * </p>
+     *
+     * @param id                현재 로그인한 사용자의 uuid
+     * @param groupRoutineListId 탈퇴할 단체 루틴의 ID
+     */
+    void leaveGroupRoutine(UUID id, Long groupRoutineListId);
+
+    /**
+     * 단체 루틴의 완료 여부(성공/실패)를 기록합니다.
+     * <p>
+     * 해당 루틴에 참여중인 사용자만 완료 여부를 기록할 수 있습니다.
+     * </p>
+     *
+     * @param id                현재 로그인한 사용자의 uuid
+     * @param groupRoutineListId 완료 여부를 기록할 단체 루틴의 ID
+     * @param recordUpdateDto    완료 여부 갱신을 위한 요청 데이터
+     */
+    void updateGroupRoutineRecord(UUID id, Long groupRoutineListId, GroupRoutineRequestDto.RecordUpdate recordUpdateDto);
+
+    /**
      * 단체 루틴에 속한 상세 루틴들을 생성합니다.
      * <p>
      * 해당 루틴의 방장만 생성을 진행할 수 있습니다.

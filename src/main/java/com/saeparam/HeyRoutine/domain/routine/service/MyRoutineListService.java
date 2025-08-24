@@ -70,10 +70,10 @@ public class MyRoutineListService {
     }
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDateTime localDateTime,Pageable pageable) {
+    public PaginatedResponse<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDate date,Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        Page<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,localDateTime,pageable);
+        Page<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,date,pageable);
 
         return PaginatedResponse.of(myRoutineList, MyRoutineListResponseDto::toDto);
     }
@@ -153,6 +153,7 @@ public class MyRoutineListService {
         if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
+        // 루틴기록 삭제
         routineRepository.delete(routine);
         return "루틴이 삭제되었습니다.";
     }

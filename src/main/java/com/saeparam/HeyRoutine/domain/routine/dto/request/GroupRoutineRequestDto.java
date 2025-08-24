@@ -26,6 +26,7 @@ import java.util.List;
  * ├───────────────────────────────┤
  * │ - Create                      │──► 단체 루틴 생성 요청
  * │ - Update                      │──► 단체 루틴 수정 요청
+ * │ - RecordUpdate                │──► 단체 루틴 완료 여부 갱신 요청
  * └───────────────────────────────┘
  * </pre>
  */
@@ -111,5 +112,21 @@ public class GroupRoutineRequestDto {
         @Pattern(regexp = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$", message = "시간 형식을 HH:mm에 맞게 입력해주세요.")
         @Schema(description = "루틴 종료 시간 (HH:mm)", example = "09:00")
         private String endTime;
+    }
+
+    /**
+     * <h3>[Request] 단체 루틴 완료 여부 갱신</h3>
+     * <p>PATCH /api/v1/routines/groups/{groupRoutineListId}</p>
+     */
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    @Schema(description = "단체 루틴 완료 여부 갱신 요청 DTO")
+    public static class RecordUpdate {
+
+        @NotNull(message = "상태 값은 필수입니다.")
+        @Schema(description = "단체 루틴 완료 여부 (true: 성공, false: 실패)", example = "true")
+        private Boolean status;
     }
 }
