@@ -79,7 +79,7 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String makeRoutineInMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
+    public String makeRoutineInMyRoutineList(UUID userId, Long id, List<RoutineRequestDto> routineRequestDtoList) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         MyRoutineList myRoutineList=myRoutineListRepository.findById(id)
@@ -88,14 +88,15 @@ public class MyRoutineListService {
         if (!myRoutineList.getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
-        Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
-        Routine routine=routineRepository.save(RoutineRequestDto.toEntity(routineRequestDto,emoji));
-        myRoutineMiddleRepository.save(MyRoutineMiddle.builder()
-                        .routineList(myRoutineList)
-                        .routine(routine)
-                .build());
-
+        for(RoutineRequestDto routineRequest:routineRequestDtoList) {
+            Emoji emoji = emojiRepository.findById(routineRequest.getEmojiId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
+            Routine routine = routineRepository.save(RoutineRequestDto.toEntity(routineRequest, emoji));
+            myRoutineMiddleRepository.save(MyRoutineMiddle.builder()
+                    .routineList(myRoutineList)
+                    .routine(routine)
+                    .build());
+        }
         return "루틴이 저장되었습니다";
     }
 
