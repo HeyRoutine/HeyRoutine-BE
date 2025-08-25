@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.routine.controller;
 
 import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineInMyRoutineUpdateRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
@@ -98,13 +99,14 @@ public class MyRoutineListController {
 
     /**
      * 개인루틴 리스트 안 전체 루틴 수정
-     * id = 루틴Id
+     * id = 루틴리스트 Id
      */
-    @PatchMapping("/list/routine/{routineId}")
+    @PatchMapping("/list/routine/{routineListId}")
     @Operation(summary = "개인루틴 리스트 안 루틴 수정 API", description = "개인루틴 리스트 안 루틴 수정")
-    public ResponseEntity<?> updateRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long routineId,@RequestBody RoutineRequestDto routineRequestDto){
+    public ResponseEntity<?> updateRoutineInMyRoutineList(@RequestHeader("Authorization") String token,@PathVariable Long routineListId,@RequestBody RoutineInMyRoutineUpdateRequestDto routineInMyRoutineUpdateRequestDto){
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(myRoutineListService.updateInMyRoutineList(userId,routineId,routineRequestDto)));
+        myRoutineListService.updateInMyRoutineList(userId,routineListId,routineInMyRoutineUpdateRequestDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess("수정 됐습니다."));
     }
 
     /**

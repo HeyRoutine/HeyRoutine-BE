@@ -2,7 +2,9 @@ package com.saeparam.HeyRoutine.domain.routine.service;
 
 
 import com.saeparam.HeyRoutine.domain.routine.dto.request.MyRoutineListRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineInMyRoutineUpdateRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineUpdateRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.*;
@@ -130,18 +132,21 @@ public class MyRoutineListService {
     }
 
     @Transactional
-    public String updateInMyRoutineList(UUID userId, Long id, RoutineRequestDto routineRequestDto) {
+    public String updateInMyRoutineList(UUID userId, Long routineListId, RoutineInMyRoutineUpdateRequestDto routineInMyRoutineUpdateRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        Routine routine=routineRepository.findById(id)
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-        Emoji emoji=emojiRepository.findById(routineRequestDto.getEmojiId())
-                .orElseThrow(()->new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
-        if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
-            throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
-        }
-        routine.update(routineRequestDto,emoji);
+        makeRoutineInMyRoutineList(userId,routineListId,routineInMyRoutineUpdateRequestDto.getMakeRoutine());
+        for(RoutineUpdateRequestDto routineUpdateRequestDto:routineInMyRoutineUpdateRequestDto.getUpdateRoutine()) {
+            Routine routine = routineRepository.findById(routineUpdateRequestDto.getId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
+            if (!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)) {
+                throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
+            }
+            Emoji emoji = emojiRepository.findById(routineUpdateRequestDto.getEmojiId())
+                    .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
 
+            routine.update(routineUpdateRequestDto, emoji);
+        }
         return "루틴이 수정되었습니다.";
     }
 
