@@ -19,7 +19,8 @@ public interface MyRoutineListRepository extends JpaRepository<MyRoutineList, Lo
     @Query("SELECT DISTINCT mrl FROM MyRoutineList mrl JOIN mrl.routineDays mrd " +
             "WHERE mrl.user = :user " +
             "AND mrl.startDate <= :date " +
-            "AND mrd.dayType = :day")
+            "AND mrd.dayType = :day " +
+            "ORDER BY mrl.startTime ASC")
     Page<MyRoutineList> findByUserAndStartDateAfterAndDay(User user, DayType day, LocalDate date, Pageable pageable
     );
 
