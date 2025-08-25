@@ -82,6 +82,10 @@ public class GroupRoutineResponseDto {
         @Schema(description = "참여중인 인원 수", example = "52")
         private int peopleNums;
 
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "현재 루틴 진행률(소수점 첫째 자리)", example = "75.5")
+        private Double percent;
+
         @Schema(description = "루틴 수행 요일 리스트", example = "[\"수\", \"일\"]")
         private List<String> dayOfWeek;
 
