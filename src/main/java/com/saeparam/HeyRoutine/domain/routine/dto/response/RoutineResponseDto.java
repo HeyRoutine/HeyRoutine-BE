@@ -18,7 +18,7 @@ public class RoutineResponseDto {
     private String routineName;
     private String emojiUrl;
     private int time;
-    private boolean isCompleted;
+    private Boolean isCompleted;
 
 //    public static RoutineResponseDto toDto(Routine routine){
 //        return RoutineResponseDto.builder()
