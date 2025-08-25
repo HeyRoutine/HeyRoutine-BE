@@ -26,6 +26,19 @@ import java.util.UUID;
 public interface GroupRoutineService {
 
     /**
+     * 키워드를 기준으로 단체 루틴을 검색합니다.
+     * <p>
+     * 제목 또는 설명에 키워드가 포함된 루틴들을 최신순으로 반환합니다.
+     * </p>
+     *
+     * @param id      현재 로그인한 사용자의 uuid
+     * @param keyword 검색 키워드
+     * @param pageable 페이지 번호, 페이지 크기 정보를 담은 객체
+     * @return {@link GroupRoutineResponseDto.GroupRoutineInfo} 검색된 단체 루틴 목록 정보
+     */
+    PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> searchGroupRoutines(UUID id, String keyword, Pageable pageable);
+
+    /**
      * 페이징 처리된 단체 루틴 목록을 조회합니다.
      * <p>
      * 각 루틴에 대해 현재 사용자의 참여 여부(`isJoined`)를 함께 반환합니다.

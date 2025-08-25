@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,9 +73,22 @@ public class GroupRoutineController {
     @GetMapping
     @Operation(summary = "단체루틴 리스트 조회 API", description = "모든 단체루틴 리스트를 페이지네이션으로 조회합니다.")
     public ResponseEntity<ApiResponse<PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo>>> getGroupRoutines(@RequestHeader("Authorization") String token,
-                                                                                                                     @PageableDefault(page = 0, size = 10) Pageable pageable) {
+                                                                                                                     @PageableDefault(page = 0, size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
         PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> response = groupRoutineService.getGroupRoutines(uuid, pageable);
+        if (response.items().isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.noContent());
+        }
+        return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "단체루틴 검색 API", description = "키워드로 단체루틴을 검색합니다.")
+    public ResponseEntity<ApiResponse<PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo>>> searchGroupRoutines(@RequestHeader("Authorization") String token,
+                                                                                                                        @RequestParam String keyword,
+                                                                                                                        @PageableDefault(page = 0, size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
+        PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> response = groupRoutineService.searchGroupRoutines(uuid, keyword, pageable);
         if (response.items().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.noContent());
         }
