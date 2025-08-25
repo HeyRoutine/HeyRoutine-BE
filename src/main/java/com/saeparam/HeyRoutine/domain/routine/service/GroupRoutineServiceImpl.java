@@ -89,7 +89,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     }
 
     @Override
-    public void createGroupRoutine(UUID userId, GroupRoutineRequestDto.Create createDto) {
+    public Long createGroupRoutine(UUID userId, GroupRoutineRequestDto.Create createDto) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -133,6 +133,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .groupRoutineList(groupRoutineList)
                 .user(user)
                 .build());
+        return groupRoutineList.getId();
     }
 
     // 주석 다 쓰려니까 힘드네오 필요한 부분 간략할게 작성할게욥

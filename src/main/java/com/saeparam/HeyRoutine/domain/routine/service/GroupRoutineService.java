@@ -43,7 +43,7 @@ public interface GroupRoutineService {
      * @param id     루틴을 생성하는 사용자(방장)의 uid
      * @param createDto 단체 루틴 생성을 위한 요청 데이터
      */
-    void createGroupRoutine(UUID id, GroupRoutineRequestDto.Create createDto);
+    Long createGroupRoutine(UUID id, GroupRoutineRequestDto.Create createDto);
 
     /**
      * 특정 단체 루틴의 상세 정보를 조회합니다.
