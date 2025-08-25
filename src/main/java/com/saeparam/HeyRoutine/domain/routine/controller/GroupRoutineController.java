@@ -84,11 +84,11 @@ public class GroupRoutineController {
 
     @PostMapping
     @Operation(summary = "단체루틴 생성 API", description = "새로운 단체루틴을 생성합니다.")
-    public ResponseEntity<ApiResponse<Void>> createGroupRoutine(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> createGroupRoutine(@RequestHeader("Authorization") String token,
                                                                 @Valid @RequestBody GroupRoutineRequestDto.Create createDto) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
-        groupRoutineService.createGroupRoutine(uuid, createDto);
-        return ResponseEntity.ok(ApiResponse.onSuccess(null, SuccessStatus.INSERT_SUCCESS.getMessage()));
+        Long id=groupRoutineService.createGroupRoutine(uuid, createDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(id));
     }
 
 
