@@ -54,6 +54,42 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
+    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getMyGroupRoutines(UUID userId, Pageable pageable) {
+        // 1. 사용자 존재 여부 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 가입한 단체 루틴 목록 조회 (최신순)
+        Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAllByUser(user, pageable);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
+        return PaginatedResponse.of(routinePage, routine -> {
+            long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
+            long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+
+            List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
+                    .stream()
+                    .map(day -> day.getDayType().name())
+                    .collect(Collectors.toList());
+
+            return GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                    .id(routine.getId())
+                    .routineType(routine.getRoutineType())
+                    .title(routine.getTitle())
+                    .description(routine.getDescription())
+                    .startTime(routine.getStartTime().format(formatter))
+                    .endTime(routine.getEndTime().format(formatter))
+                    .routineNums((int) routineNums)
+                    .peopleNums((int) peopleNums)
+                    .dayOfWeek(dayOfWeek)
+                    .isJoined(true)
+                    .build();
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> searchGroupRoutines(UUID userId, String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
             throw new RoutineHandler(ErrorStatus._BAD_REQUEST);

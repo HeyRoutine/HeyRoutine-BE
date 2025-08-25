@@ -26,6 +26,16 @@ import java.util.UUID;
 public interface GroupRoutineService {
 
     /**
+     * 사용자가 참여중인 단체 루틴 목록을 조회합니다.
+     * <p>단체 루틴은 생성일 기준으로 최신순 정렬됩니다.</p>
+     *
+     * @param id       현재 로그인한 사용자의 uuid
+     * @param pageable 페이지 번호, 페이지 크기 정보를 담은 객체
+     * @return {@link GroupRoutineResponseDto.GroupRoutineInfo} 단체 루틴 목록 정보
+     */
+    PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getMyGroupRoutines(UUID id, Pageable pageable);
+
+    /**
      * 키워드를 기준으로 단체 루틴을 검색합니다.
      * <p>
      * 제목 또는 설명에 키워드가 포함된 루틴들을 최신순으로 반환합니다.

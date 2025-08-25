@@ -29,14 +29,11 @@ public interface GroupRoutineListRepository extends JpaRepository<GroupRoutineLi
             "ORDER BY grl.createdDate DESC")
     Page<GroupRoutineList> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    /**
-     * 사용자가 참여중인 단체 루틴 목록을 페이징 조회합니다.
-     *
-     * @param user     조회할 사용자
-     * @param pageable 페이지 정보
-     * @return 참여중인 단체 루틴 페이지
-     */
-    @Query("SELECT grl FROM GroupRoutineList grl JOIN grl.userInRooms uir WHERE uir.user = :user")
+    @Query(value = "SELECT DISTINCT grl FROM GroupRoutineList grl " +
+            "JOIN grl.userInRooms uir " +
+            "WHERE uir.user = :user",
+            countQuery = "SELECT COUNT(DISTINCT grl) FROM GroupRoutineList grl " +
+                    "JOIN grl.userInRooms uir " +
+                    "WHERE uir.user = :user")
     Page<GroupRoutineList> findAllByUser(@Param("user") User user, Pageable pageable);
-
 }
