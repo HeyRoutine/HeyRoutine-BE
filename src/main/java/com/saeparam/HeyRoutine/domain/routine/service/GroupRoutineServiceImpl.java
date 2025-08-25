@@ -18,7 +18,9 @@ import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,26 +49,24 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
     private final RoutineRecordRepository routineRecordRepository;
     private final GroupRoutineListDoneCheckRepository groupRoutineListDoneCheckRepository;
 
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     // 요일 변환 로직은 DayType.from(String)에 위임
 
     @Override
     @Transactional(readOnly = true)
-    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getGroupRoutines(UUID userId, Pageable pageable) {
+    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getMyGroupRoutines(UUID userId, Pageable pageable) {
         // 1. 사용자 존재 여부 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // 2. 단체 루틴 목록 조회 (페이징)
-        Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAll(pageable);
+        // 2. 가입한 단체 루틴 목록 조회 (최신순)
+        Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAllByUser(user, pageable);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
 
         // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
         return PaginatedResponse.of(routinePage, routine -> {
             long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
             long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
-
-            boolean isJoined = routine.getUser().equals(user)
-                    || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
 
             List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
                     .stream()
@@ -83,10 +83,44 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                     .routineNums((int) routineNums)
                     .peopleNums((int) peopleNums)
                     .dayOfWeek(dayOfWeek)
-                    .isJoined(isJoined)
+                    .isJoined(true)
                     .build();
         });
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> searchGroupRoutines(UUID userId, String keyword, Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            throw new RoutineHandler(ErrorStatus._BAD_REQUEST);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<GroupRoutineList> routinePage = groupRoutineListRepository.searchByKeyword(keyword, sortedPageable);
+        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getGroupRoutines(UUID userId, Pageable pageable) {
+        // 1. 사용자 존재 여부 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 최신순 정렬이 적용된 페이지 정보 생성
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
+        Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAll(sortedPageable);
+        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user));
+    }
+
 
     @Override
     public Long createGroupRoutine(UUID userId, GroupRoutineRequestDto.Create createDto) {
@@ -630,6 +664,36 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
 
     // ####################### Private 서브 메서드 #######################
+    /**
+     * {@link GroupRoutineList} 엔티티를 {@link GroupRoutineResponseDto.GroupRoutineInfo}로 변환합니다.
+     * 공통 매핑 로직을 분리하여 재사용성을 높였습니다.
+     */
+    private GroupRoutineResponseDto.GroupRoutineInfo toGroupRoutineInfo(GroupRoutineList routine, User user) {
+        long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
+        long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+
+        boolean isJoined = routine.getUser().equals(user)
+                || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
+
+        List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
+                .stream()
+                .map(day -> day.getDayType().name())
+                .collect(Collectors.toList());
+
+        return GroupRoutineResponseDto.GroupRoutineInfo.builder()
+                .id(routine.getId())
+                .routineType(routine.getRoutineType())
+                .title(routine.getTitle())
+                .description(routine.getDescription())
+                .startTime(routine.getStartTime().format(TIME_FORMATTER))
+                .endTime(routine.getEndTime().format(TIME_FORMATTER))
+                .routineNums((int) routineNums)
+                .peopleNums((int) peopleNums)
+                .dayOfWeek(dayOfWeek)
+                .isJoined(isJoined)
+                .build();
+    }
+
     /**
      * 문자열 형태의 시간을 {@link LocalTime}으로 변환합니다.
      *
