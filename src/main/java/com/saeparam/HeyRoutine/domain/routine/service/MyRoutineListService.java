@@ -75,9 +75,32 @@ public class MyRoutineListService {
     public PaginatedResponse<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDate date,Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        Page<MyRoutineList> myRoutineList=myRoutineListRepository.findByUserAndStartDateAfterAndDay(user,day,date,pageable);
+        Page<MyRoutineList> myRoutineList = myRoutineListRepository.findByUserAndStartDateAfterAndDay(user, day, date, pageable);
 
-        return PaginatedResponse.of(myRoutineList, MyRoutineListResponseDto::toDto);
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        return PaginatedResponse.of(myRoutineList, list -> {
+            // 상세 루틴 목록 조회
+            List<MyRoutineMiddle> middles = myRoutineMiddleRepository.findByRoutineList(list);
+            List<Routine> routines = middles.stream()
+                    .map(MyRoutineMiddle::getRoutine)
+                    .collect(Collectors.toList());
+
+            int routineCount = routines.size();
+            long doneCount = 0;
+            if (!routines.isEmpty()) {
+                List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+                doneCount = records.stream()
+                        .filter(RoutineRecord::isDoneCheck)
+                        .count();
+            }
+            double percent = routineCount > 0 ? Math.round((double) doneCount * 1000 / routineCount) / 10.0 : 0.0;
+
+            MyRoutineListResponseDto dto = MyRoutineListResponseDto.toDto(list);
+            dto.setPercent(percent);
+            return dto;
+        });
     }
 
     @Transactional
