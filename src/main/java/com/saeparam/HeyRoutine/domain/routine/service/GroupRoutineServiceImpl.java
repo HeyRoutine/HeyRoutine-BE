@@ -61,31 +61,10 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
         // 2. 가입한 단체 루틴 목록 조회 (최신순)
         Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAllByUser(user, pageable);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+
 
         // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
-        return PaginatedResponse.of(routinePage, routine -> {
-            long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
-            long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
-
-            List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
-                    .stream()
-                    .map(day -> day.getDayType().name())
-                    .collect(Collectors.toList());
-
-            return GroupRoutineResponseDto.GroupRoutineInfo.builder()
-                    .id(routine.getId())
-                    .routineType(routine.getRoutineType())
-                    .title(routine.getTitle())
-                    .description(routine.getDescription())
-                    .startTime(routine.getStartTime().format(formatter))
-                    .endTime(routine.getEndTime().format(formatter))
-                    .routineNums((int) routineNums)
-                    .peopleNums((int) peopleNums)
-                    .dayOfWeek(dayOfWeek)
-                    .isJoined(true)
-                    .build();
-        });
+        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user, true));
     }
 
     @Override
@@ -102,7 +81,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 Sort.by(Sort.Direction.DESC, "createdDate"));
 
         Page<GroupRoutineList> routinePage = groupRoutineListRepository.searchByKeyword(keyword, sortedPageable);
-        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user));
+        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user, false));
     }
 
     @Override
@@ -118,7 +97,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
         // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
         Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAll(sortedPageable);
-        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user));
+        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user, false));
     }
 
 
@@ -362,26 +341,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         boolean isJoined = isAdmin || isMember;
 
         // 기본 정보 구성
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        long routineNums = groupRoutineMiddleRepository.countByRoutineList(groupRoutineList);
-        long peopleNums = userInRoomRepository.countByGroupRoutineList(groupRoutineList);
-        List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(groupRoutineList)
-                .stream()
-                .map(day -> day.getDayType().name())
-                .collect(Collectors.toList());
-
-        GroupRoutineResponseDto.GroupRoutineInfo routineInfo = GroupRoutineResponseDto.GroupRoutineInfo.builder()
-                .id(groupRoutineList.getId())
-                .routineType(groupRoutineList.getRoutineType())
-                .title(groupRoutineList.getTitle())
-                .description(groupRoutineList.getDescription())
-                .startTime(groupRoutineList.getStartTime().format(formatter))
-                .endTime(groupRoutineList.getEndTime().format(formatter))
-                .routineNums((int) routineNums)
-                .peopleNums((int) peopleNums)
-                .dayOfWeek(dayOfWeek)
-                .isJoined(isJoined)
-                .build();
+        GroupRoutineResponseDto.GroupRoutineInfo routineInfo = toGroupRoutineInfo(groupRoutineList, user, false);
 
         // 상세 루틴 정보
         List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findWithRoutineByRoutineList(groupRoutineList);
@@ -668,9 +628,29 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
      * {@link GroupRoutineList} 엔티티를 {@link GroupRoutineResponseDto.GroupRoutineInfo}로 변환합니다.
      * 공통 매핑 로직을 분리하여 재사용성을 높였습니다.
      */
-    private GroupRoutineResponseDto.GroupRoutineInfo toGroupRoutineInfo(GroupRoutineList routine, User user) {
-        long routineNums = groupRoutineMiddleRepository.countByRoutineList(routine);
+    private GroupRoutineResponseDto.GroupRoutineInfo toGroupRoutineInfo(GroupRoutineList routine, User user, boolean includePercent) {
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(routine);
+        int routineNums = middles.size();
         long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+
+        Double percent = null;
+        if (includePercent) {
+            List<Routine> routines = middles.stream()
+                    .map(GroupRoutineMiddle::getRoutine)
+                    .collect(Collectors.toList());
+
+            LocalDate today = LocalDate.now();
+            LocalDateTime startOfDay = today.atStartOfDay();
+            LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+            long doneCount = 0;
+            if (!routines.isEmpty()) {
+                List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+                doneCount = records.stream()
+                        .filter(RoutineRecord::isDoneCheck)
+                        .count();
+            }
+            percent = routineNums > 0 ? Math.round((double) doneCount * 1000 / routineNums) / 10.0 : 0.0;
+        }
 
         boolean isJoined = routine.getUser().equals(user)
                 || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
@@ -687,8 +667,9 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .description(routine.getDescription())
                 .startTime(routine.getStartTime().format(TIME_FORMATTER))
                 .endTime(routine.getEndTime().format(TIME_FORMATTER))
-                .routineNums((int) routineNums)
+                .routineNums(routineNums)
                 .peopleNums((int) peopleNums)
+                .percent(percent)
                 .dayOfWeek(dayOfWeek)
                 .isJoined(isJoined)
                 .build();

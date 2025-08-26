@@ -30,6 +30,12 @@ public class MyRoutineListResponseDto {
     private RoutineType routineType;
     private Set<DayType> dayTypes;
 
+    /**
+     * 현재 루틴 진행률(%)
+     */
+    private double percent;
+
+
 
     public static MyRoutineListResponseDto toDto(MyRoutineList myRoutineList){
         Set<DayType> days = myRoutineList.getRoutineDays().stream()
@@ -42,6 +48,7 @@ public class MyRoutineListResponseDto {
                 .endTime(myRoutineList.getEndTime())
                 .routineType(myRoutineList.getRoutineType())
                 .dayTypes(days)
+                .percent(0)
                 .build();
     }
 }
