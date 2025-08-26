@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.user.service;
 
 
+import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
@@ -121,10 +122,14 @@ public class UserService {
         return jwtToken;
     }
 
-    public String findByNickname(UUID userId) {
+    public MyInfoResponseDto myInfo(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        return user.getNickname();
+
+        return MyInfoResponseDto.builder()
+                .userImage(user.getProfileImage())
+                .nickname(user.getNickname())
+                .build();
     }
 
     @Transactional

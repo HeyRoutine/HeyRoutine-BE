@@ -33,12 +33,12 @@ public class UserController {
     /**
      * 닉네임 보기
      */
-    @PostMapping("/my-nickname")
-    @Operation(summary = "내 닉네임 확인 API", description = "내 닉네임을 확인합니다.")
+    @PostMapping("/my-info")
+    @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
 
-    public ResponseEntity<?> myNickname(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> myInfo(@RequestHeader("Authorization") String token) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(userService.findByNickname(userId)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(userService.myInfo(userId)));
     }
 
 
