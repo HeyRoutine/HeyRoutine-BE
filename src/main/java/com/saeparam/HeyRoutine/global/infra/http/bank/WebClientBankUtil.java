@@ -1,8 +1,10 @@
 package com.saeparam.HeyRoutine.global.infra.http.bank;
 
+import com.saeparam.HeyRoutine.domain.finance.dto.request.AccountTransferRequestDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.request.CheckAuthCodeRequestDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.request.OpenAccountAuthRequestDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.request.TransactionHistoryRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.AccountTransferResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryResponseDto;
@@ -207,6 +209,52 @@ public class WebClientBankUtil {
                 )
                 .bodyToMono(responseDtoClass);
 //                .block();
+    }
+
+    /**
+     * 계좌 입금 요청
+     */
+    public Mono<AccountTransferResponseDto> deposit(String userKey, String accountNo, long amount, String summary) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/updateDemandDepositAccountDeposit";
+        BankAccountHeaderDto header = createHeader("updateDemandDepositAccountDeposit", "updateDemandDepositAccountDeposit", userKey);
+        AccountTransferRequestDto requestDto = AccountTransferRequestDto.builder()
+                .header(header)
+                .accountNo(accountNo)
+                .transactionBalance(String.valueOf(amount))
+                .transactionSummary(summary)
+                .build();
+
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(AccountTransferResponseDto.class);
+    }
+
+    /**
+     * 계좌 출금 요청
+     */
+    public Mono<AccountTransferResponseDto> withdraw(String userKey, String accountNo, long amount, String summary) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/updateDemandDepositAccountWithdrawal";
+        BankAccountHeaderDto header = createHeader("updateDemandDepositAccountWithdrawal", "updateDemandDepositAccountWithdrawal", userKey);
+        AccountTransferRequestDto requestDto = AccountTransferRequestDto.builder()
+                .header(header)
+                .accountNo(accountNo)
+                .transactionBalance(String.valueOf(amount))
+                .transactionSummary(summary)
+                .build();
+
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(AccountTransferResponseDto.class);
     }
 
 

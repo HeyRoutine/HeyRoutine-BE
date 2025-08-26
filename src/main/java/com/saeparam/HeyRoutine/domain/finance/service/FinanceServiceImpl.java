@@ -3,6 +3,9 @@ package com.saeparam.HeyRoutine.domain.finance.service;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.template.DepositTemplates;
+import com.saeparam.HeyRoutine.domain.finance.template.ExpenseTemplates;
+import com.saeparam.HeyRoutine.domain.finance.template.TransactionTemplate;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
@@ -10,6 +13,9 @@ import com.saeparam.HeyRoutine.global.infra.messaging.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class FinanceServiceImpl {
+public class FinanceServiceImpl implements FinanceService{
     private final UserRepository userRepository;
     private final WebClientBankUtil webClientBankUtil;
     private final FcmService fcmService;
@@ -31,6 +37,7 @@ public class FinanceServiceImpl {
      * @param userId    사용자 ID
      * @param accountNo 계좌번호
      */
+    @Override
     @Transactional
     public void sendAccountCode(UUID userId, String accountNo) {
         User user = userRepository.findById(userId)
@@ -70,6 +77,7 @@ public class FinanceServiceImpl {
      * @param code   인증번호
      * @return 인증 성공 여부
      */
+    @Override
     @Transactional
     public boolean verifyAccountCode(UUID userId, String code) {
         User user = userRepository.findById(userId)
@@ -97,5 +105,50 @@ public class FinanceServiceImpl {
             return parts[1];
         }
         return "";
+    }
+
+    /**
+     * 계좌에 더미 입출금 내역을 생성한다.
+     */
+    @Override
+    public void generateDummyTransactions(String userKey, String accountNo) {
+        List<TransactionTemplate> deposits = new ArrayList<>(DepositTemplates.TEMPLATES);
+        Collections.shuffle(deposits);
+        long totalDeposit = 0L;
+
+        for (TransactionTemplate template : deposits.subList(0, 2)) {
+            try {
+                webClientBankUtil.deposit(userKey, accountNo, template.amount(), template.summary())
+                        .doOnSuccess(v -> log.debug("입금 성공: {}", template.summary()))
+                        .doOnError(e -> log.error("입금 실패: {}", e.getMessage()))
+                        .block();
+                totalDeposit += template.amount();
+            } catch (Exception e) {
+                log.error("입금 처리 중 오류", e);
+            }
+        }
+
+        long remaining = totalDeposit;
+        List<TransactionTemplate> expenses = new ArrayList<>(ExpenseTemplates.TEMPLATES);
+        Collections.shuffle(expenses);
+        int count = 0;
+        for (TransactionTemplate template : expenses) {
+            if (count >= 10) {
+                break;
+            }
+            if (template.amount() > remaining) {
+                continue;
+            }
+            try {
+                webClientBankUtil.withdraw(userKey, accountNo, template.amount(), template.summary())
+                        .doOnSuccess(v -> log.debug("출금 성공: {}", template.summary()))
+                        .doOnError(e -> log.error("출금 실패: {}", e.getMessage()))
+                        .block();
+                remaining -= template.amount();
+                count++;
+            } catch (Exception e) {
+                log.error("출금 처리 중 오류", e);
+            }
+        }
     }
 }

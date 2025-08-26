@@ -20,4 +20,12 @@ public interface FinanceService {
      * @return 인증 성공 여부
      */
     boolean verifyAccountCode(UUID userId, String code);
+
+    /**
+     * 더미 입출금 거래를 생성한다.
+     *
+     * @param userKey   은행 사용자 키
+     * @param accountNo 계좌번호
+     */
+    void generateDummyTransactions(String userKey, String accountNo);
 }
