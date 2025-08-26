@@ -1,5 +1,7 @@
 package com.saeparam.HeyRoutine.domain.finance.service;
 
+import reactor.core.publisher.Mono;
+
 import java.util.UUID;
 
 public interface FinanceService {
@@ -27,5 +29,5 @@ public interface FinanceService {
      * @param userKey   은행 사용자 키
      * @param accountNo 계좌번호
      */
-    void generateDummyTransactions(String userKey, String accountNo);
+    Mono<Void> generateDummyTransactions(String userKey, String accountNo);
 }

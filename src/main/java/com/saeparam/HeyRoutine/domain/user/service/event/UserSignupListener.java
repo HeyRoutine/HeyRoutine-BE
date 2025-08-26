@@ -57,7 +57,11 @@ class UserSignupListener {
                             String accountNumber = accountInfo.accountResponse().getRec().getAccountNo();
                             String userKey = accountInfo.userKey();
                             log.info("요구불 계좌 생성 성공! 계좌번호: {}", accountNumber);
-                            financeService.generateDummyTransactions(userKey, accountNumber);
+                            financeService.generateDummyTransactions(userKey, accountNumber)
+                                    .subscribe(
+                                            v -> {},
+                                            e -> log.error("더미 거래 생성 중 오류", e)
+                                    );
                             userAccountUpdater.updateUserBankAccount(email, accountNumber);
                         },
                         error -> {

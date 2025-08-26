@@ -47,13 +47,19 @@ public class WebClientBankUtil {
     /**
      * 공통 헤더 생성
      */
-    private BankAccountHeaderDto createHeader(String apiName, String apiServiceCode, String userKey) {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-        String transmissionDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String transmissionTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HHmmss");
+    private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        String randomDigits = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
+    private BankAccountHeaderDto createHeader(String apiName, String apiServiceCode, String userKey) {
+        var now = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).withZoneSameInstant(KST);
+        String transmissionDate = now.format(DATE_FMT);
+        String transmissionTime = now.format(TIME_FMT);
+
+        // 기관거래고유번호는 "YYYYMMDDHHmmss" + 6자리 랜덤숫자(100000-999999)
+        String timestamp = now.format(DATE_TIME_FMT);
+        String randomDigits = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
         String transactionUniqueNo = timestamp + randomDigits;
 
         return BankAccountHeaderDto.builder()
@@ -78,41 +84,14 @@ public class WebClientBankUtil {
      * @param <T> 응답 DTO의 타입
      */
     public <T> Mono<T> createDemandDepositAccount(String userKey, String accountTypeUniqueNo, Class<T> responseDtoClass) {
-        String url=baseUrl+apiVersion+"/edu/demandDeposit/createDemandDepositAccount";
-        // 1. 현재 시간을 한국 표준시(KST) 기준으로 가져옵니다.
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/createDemandDepositAccount";
 
-        // 2. 날짜와 시간 문자열을 생성합니다.
-        String transmissionDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String transmissionTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
+        BankAccountHeaderDto header = createHeader(
+                "createDemandDepositAccount",
+                "createDemandDepositAccount",
+                userKey
+        );
 
-        System.out.println(transmissionDate+"제작날짜");
-        System.out.println(transmissionTime+"제작시간");
-        // 3. 고유번호의 앞 14자리를 생성합니다.
-        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
-        // 4. 고유번호의 뒷 6자리를 순수한 랜덤 숫자로 생성합니다.
-        String randomDigits = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
-
-        // 5. 모든 부분을 조합하여 최종 거래 고유번호를 생성합니다.
-        String transactionUniqueNo = timestamp + randomDigits;
-
-
-        // 1. Header DTO 객체 생성
-        BankAccountHeaderDto header = BankAccountHeaderDto.builder()
-                .apiName("createDemandDepositAccount")
-                .transmissionDate(transmissionDate) // 일관된 시간 값 사용
-                .transmissionTime(transmissionTime)
-                .institutionCode(institutionCode) // 설정 파일에서 주입받은 값 사용
-                .fintechAppNo(fintechAppNo)       // 설정 파일에서 주입받은 값 사용
-                .apiServiceCode("createDemandDepositAccount")
-                // 거래 고유번호는 매번 유니크한 값으로 생성
-                .institutionTransactionUniqueNo(transactionUniqueNo)
-                .apiKey(apiKey)
-                .userKey(userKey) // 파라미터로 받은 사용자 키 사용
-                .build();
-
-        // 2. 최상위 요청 DTO 객체 생성
         BankAccountMakeRequestDto requestDto = new BankAccountMakeRequestDto(header, accountTypeUniqueNo);
 
         // 3. POST 요청 전송

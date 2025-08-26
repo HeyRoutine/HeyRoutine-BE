@@ -16,9 +16,13 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @Service
@@ -109,46 +113,44 @@ public class FinanceServiceImpl implements FinanceService{
 
     /**
      * 계좌에 더미 입출금 내역을 생성한다.
+     * <p>
+     * 입금 2건 후 그 금액을 초과하지 않는 범위에서 최대 10건의 출금을 수행한다.
+     * 각 단계는 순차적으로 처리하여 실제 거래 흐름과 유사하게 만든다.
      */
     @Override
-    public void generateDummyTransactions(String userKey, String accountNo) {
+    public Mono<Void> generateDummyTransactions(String userKey, String accountNo) {
         List<TransactionTemplate> deposits = new ArrayList<>(DepositTemplates.TEMPLATES);
         Collections.shuffle(deposits);
-        long totalDeposit = 0L;
+        AtomicLong total = new AtomicLong(0);
 
-        for (TransactionTemplate template : deposits.subList(0, 2)) {
-            try {
-                webClientBankUtil.deposit(userKey, accountNo, template.amount(), template.summary())
-                        .doOnSuccess(v -> log.debug("입금 성공: {}", template.summary()))
+        // 1) 두 건의 입금을 순차 실행
+        Mono<Void> depositFlow = Flux.fromIterable(deposits.subList(0, 2))
+                .concatMap(template -> webClientBankUtil.deposit(userKey, accountNo, template.amount(), template.summary())
+                        .doOnNext(res -> {
+                            log.info("입금 성공: {} {}원", template.summary(), template.amount());
+                            total.addAndGet(template.amount());
+                        })
                         .doOnError(e -> log.error("입금 실패: {}", e.getMessage()))
-                        .block();
-                totalDeposit += template.amount();
-            } catch (Exception e) {
-                log.error("입금 처리 중 오류", e);
-            }
-        }
+                        .onErrorResume(e -> Mono.empty()))
+                .then();
 
-        long remaining = totalDeposit;
-        List<TransactionTemplate> expenses = new ArrayList<>(ExpenseTemplates.TEMPLATES);
-        Collections.shuffle(expenses);
-        int count = 0;
-        for (TransactionTemplate template : expenses) {
-            if (count >= 10) {
-                break;
-            }
-            if (template.amount() > remaining) {
-                continue;
-            }
-            try {
-                webClientBankUtil.withdraw(userKey, accountNo, template.amount(), template.summary())
-                        .doOnSuccess(v -> log.debug("출금 성공: {}", template.summary()))
-                        .doOnError(e -> log.error("출금 실패: {}", e.getMessage()))
-                        .block();
-                remaining -= template.amount();
-                count++;
-            } catch (Exception e) {
-                log.error("출금 처리 중 오류", e);
-            }
-        }
+        // 2) 입금 완료 후 출금 실행
+        return depositFlow.then(Mono.defer(() -> {
+            AtomicLong remaining = new AtomicLong(total.get());
+            List<TransactionTemplate> expenses = new ArrayList<>(ExpenseTemplates.TEMPLATES);
+            Collections.shuffle(expenses);
+
+            return Flux.fromIterable(expenses)
+                    .filter(template -> template.amount() <= remaining.get())
+                    .take(10)
+                    .concatMap(template -> webClientBankUtil.withdraw(userKey, accountNo, template.amount(), template.summary())
+                            .doOnNext(res -> {
+                                log.info("출금 성공: {} {}원", template.summary(), template.amount());
+                                remaining.addAndGet(-template.amount());
+                            })
+                            .doOnError(e -> log.error("출금 실패: {}", e.getMessage()))
+                            .onErrorResume(e -> Mono.empty()))
+                    .then();
+        })).subscribeOn(Schedulers.boundedElastic());
     }
 }
