@@ -1,5 +1,6 @@
 package com.saeparam.HeyRoutine.domain.user.service.event;
 
+import com.saeparam.HeyRoutine.domain.finance.service.FinanceService;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankUserMakeRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.BankAccountResponseDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.BankUserMakeResponseDto;
@@ -18,6 +19,7 @@ class UserSignupListener {
 
     private final WebClientBankUtil webClientBankUtil;
     private final UserAccountUpdater userAccountUpdater;
+    private final FinanceService financeService;
 
     /**
      * UserSignedUpEvent가 발행되면, 회원가입 트랜잭션이 '커밋된 후에' 이 메서드가 실행됩니다.
@@ -45,16 +47,21 @@ class UserSignupListener {
 
                     log.info("은행 계정 생성 성공! UserKey: {}", userKey);
                     return webClientBankUtil.createDemandDepositAccount(
-                            userKey,
-                            accountTypeUniqueNo,
-                            BankAccountResponseDto.class
-                    );
+                                    userKey,
+                                    accountTypeUniqueNo,
+                                    BankAccountResponseDto.class)
+                            .map(accountResponse -> new AccountInfo(userKey, accountResponse));
                 })
                 .subscribe(
-                        accountResponse -> {
-                            String accountNumber = accountResponse.getRec().getAccountNo();
+                        accountInfo -> {
+                            String accountNumber = accountInfo.accountResponse().getRec().getAccountNo();
+                            String userKey = accountInfo.userKey();
                             log.info("요구불 계좌 생성 성공! 계좌번호: {}", accountNumber);
-                            // 별도의 트랜잭션을 가진 서비스에 DB 업데이트를 위임합니다.
+                            financeService.generateDummyTransactions(userKey, accountNumber)
+                                    .subscribe(
+                                            v -> {},
+                                            e -> log.error("더미 거래 생성 중 오류", e)
+                                    );
                             userAccountUpdater.updateUserBankAccount(email, accountNumber);
                         },
                         error -> {
@@ -63,4 +70,6 @@ class UserSignupListener {
                         }
                 );
     }
+
+    private record AccountInfo(String userKey, BankAccountResponseDto accountResponse) {}
 }
