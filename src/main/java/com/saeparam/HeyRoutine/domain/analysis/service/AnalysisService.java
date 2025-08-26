@@ -99,7 +99,7 @@ public class AnalysisService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        int currentStreak = 1;
+        int currentStreak = 0;
         LocalDate checkDate = LocalDate.now().minusDays(1); // 어제부터 거꾸로 확인 시작
 
         // 무한 루프를 돌며 하루씩 과거로 이동합니다.
@@ -112,7 +112,7 @@ public class AnalysisService {
 
             // 2. 만약 그날에 예정된 루틴이 아예 없었다면, 연속 기록에 영향을 주지 않고 그냥 건너뜁니다.
             if (!isRoutineScheduled) {
-                currentStreak = 0;
+//                currentStreak = 0;
                 checkDate = checkDate.minusDays(1); // 다음 날(과거)로 이동
                 // 너무 과거 데이터까지 확인하는 것을 방지하기 위한 안전장치 (예: 1년)
                 if (checkDate.isBefore(LocalDate.now().minusYears(1))) break;

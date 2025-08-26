@@ -1,5 +1,13 @@
 package com.saeparam.HeyRoutine.global.infra.http.bank;
 
+import com.saeparam.HeyRoutine.domain.finance.dto.request.AccountTransferRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.request.CheckAuthCodeRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.request.OpenAccountAuthRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.request.TransactionHistoryRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.AccountTransferResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryResponseDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankAccountHeaderDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankAccountMakeRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankUserMakeRequestDto;
@@ -35,6 +43,38 @@ public class WebClientBankUtil {
 
     private String institutionCode="00100";
     private String fintechAppNo="001";
+
+    /**
+     * 공통 헤더 생성
+     */
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HHmmss");
+    private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    private BankAccountHeaderDto createHeader(String apiName, String apiServiceCode, String userKey) {
+        var now = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).withZoneSameInstant(KST);
+        String transmissionDate = now.format(DATE_FMT);
+        String transmissionTime = now.format(TIME_FMT);
+
+        // 기관거래고유번호는 "YYYYMMDDHHmmss" + 6자리 랜덤숫자(100000-999999)
+        String timestamp = now.format(DATE_TIME_FMT);
+        String randomDigits = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
+        String transactionUniqueNo = timestamp + randomDigits;
+
+        return BankAccountHeaderDto.builder()
+                .apiName(apiName)
+                .transmissionDate(transmissionDate)
+                .transmissionTime(transmissionTime)
+                .institutionCode(institutionCode)
+                .fintechAppNo(fintechAppNo)
+                .apiServiceCode(apiServiceCode)
+                .institutionTransactionUniqueNo(transactionUniqueNo)
+                .apiKey(apiKey)
+                .userKey(userKey)
+                .build();
+    }
+
     /**
      *  계좌 생성 요청
      * @param userKey 사용자 고유 키
@@ -44,41 +84,14 @@ public class WebClientBankUtil {
      * @param <T> 응답 DTO의 타입
      */
     public <T> Mono<T> createDemandDepositAccount(String userKey, String accountTypeUniqueNo, Class<T> responseDtoClass) {
-        String url=baseUrl+apiVersion+"/edu/demandDeposit/createDemandDepositAccount";
-        // 1. 현재 시간을 한국 표준시(KST) 기준으로 가져옵니다.
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/createDemandDepositAccount";
 
-        // 2. 날짜와 시간 문자열을 생성합니다.
-        String transmissionDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String transmissionTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
+        BankAccountHeaderDto header = createHeader(
+                "createDemandDepositAccount",
+                "createDemandDepositAccount",
+                userKey
+        );
 
-        System.out.println(transmissionDate+"제작날짜");
-        System.out.println(transmissionTime+"제작시간");
-        // 3. 고유번호의 앞 14자리를 생성합니다.
-        String timestamp = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
-        // 4. 고유번호의 뒷 6자리를 순수한 랜덤 숫자로 생성합니다.
-        String randomDigits = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
-
-        // 5. 모든 부분을 조합하여 최종 거래 고유번호를 생성합니다.
-        String transactionUniqueNo = timestamp + randomDigits;
-
-
-        // 1. Header DTO 객체 생성
-        BankAccountHeaderDto header = BankAccountHeaderDto.builder()
-                .apiName("createDemandDepositAccount")
-                .transmissionDate(transmissionDate) // 일관된 시간 값 사용
-                .transmissionTime(transmissionTime)
-                .institutionCode(institutionCode) // 설정 파일에서 주입받은 값 사용
-                .fintechAppNo(fintechAppNo)       // 설정 파일에서 주입받은 값 사용
-                .apiServiceCode("createDemandDepositAccount")
-                // 거래 고유번호는 매번 유니크한 값으로 생성
-                .institutionTransactionUniqueNo(transactionUniqueNo)
-                .apiKey(apiKey)
-                .userKey(userKey) // 파라미터로 받은 사용자 키 사용
-                .build();
-
-        // 2. 최상위 요청 DTO 객체 생성
         BankAccountMakeRequestDto requestDto = new BankAccountMakeRequestDto(header, accountTypeUniqueNo);
 
         // 3. POST 요청 전송
@@ -96,6 +109,57 @@ public class WebClientBankUtil {
                                 .flatMap(errorBody -> Mono.error(new RuntimeException("API Server Error: " + errorBody)))
                 )
                 .bodyToMono(responseDtoClass);
+    }
+
+    /**
+     * 1원 송금 요청
+     */
+    public Mono<OpenAccountAuthResponseDto> openAccountAuth(String userKey, String accountNo, String authText) {
+        String url = baseUrl + apiVersion + "/edu/accountAuth/openAccountAuth";
+        BankAccountHeaderDto header = createHeader("openAccountAuth", "openAccountAuth", userKey);
+        OpenAccountAuthRequestDto requestDto = new OpenAccountAuthRequestDto(header, accountNo, authText);
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(OpenAccountAuthResponseDto.class);
+    }
+
+    /**
+     * 계좌 거래내역 단건 조회
+     */
+    public Mono<TransactionHistoryResponseDto> inquireTransactionHistory(String userKey, String accountNo, String transactionUniqueNo) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/inquireTransactionHistory";
+        BankAccountHeaderDto header = createHeader("inquireTransactionHistory", "inquireTransactionHistory", userKey);
+        TransactionHistoryRequestDto requestDto = new TransactionHistoryRequestDto(header, accountNo, transactionUniqueNo);
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(TransactionHistoryResponseDto.class);
+    }
+
+    /**
+     * 1원 송금 검증 요청
+     */
+    public Mono<CheckAuthCodeResponseDto> checkAuthCode(String userKey, String accountNo, String authText, String authCode) {
+        String url = baseUrl + apiVersion + "/edu/accountAuth/checkAuthCode";
+        BankAccountHeaderDto header = createHeader("checkAuthCode", "checkAuthCode", userKey);
+        CheckAuthCodeRequestDto requestDto = new CheckAuthCodeRequestDto(header, accountNo, authText, authCode);
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(CheckAuthCodeResponseDto.class);
     }
 
     /**
@@ -124,6 +188,52 @@ public class WebClientBankUtil {
                 )
                 .bodyToMono(responseDtoClass);
 //                .block();
+    }
+
+    /**
+     * 계좌 입금 요청
+     */
+    public Mono<AccountTransferResponseDto> deposit(String userKey, String accountNo, long amount, String summary) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/updateDemandDepositAccountDeposit";
+        BankAccountHeaderDto header = createHeader("updateDemandDepositAccountDeposit", "updateDemandDepositAccountDeposit", userKey);
+        AccountTransferRequestDto requestDto = AccountTransferRequestDto.builder()
+                .header(header)
+                .accountNo(accountNo)
+                .transactionBalance(String.valueOf(amount))
+                .transactionSummary(summary)
+                .build();
+
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(AccountTransferResponseDto.class);
+    }
+
+    /**
+     * 계좌 출금 요청
+     */
+    public Mono<AccountTransferResponseDto> withdraw(String userKey, String accountNo, long amount, String summary) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/updateDemandDepositAccountWithdrawal";
+        BankAccountHeaderDto header = createHeader("updateDemandDepositAccountWithdrawal", "updateDemandDepositAccountWithdrawal", userKey);
+        AccountTransferRequestDto requestDto = AccountTransferRequestDto.builder()
+                .header(header)
+                .accountNo(accountNo)
+                .transactionBalance(String.valueOf(amount))
+                .transactionSummary(summary)
+                .build();
+
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(AccountTransferResponseDto.class);
     }
 
 

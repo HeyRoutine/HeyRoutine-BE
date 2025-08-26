@@ -19,4 +19,6 @@ public interface MyRoutineListRecordRepository extends JpaRepository<MyRoutineLi
     Optional<MyRoutineListRecord> findByUserAndMyRoutineListAndCreatedDateBetween(User user, MyRoutineList routineList, LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     List<MyRoutineListRecord> findByUserAndCreatedDateBetween(User user, LocalDateTime start, LocalDateTime end);
+
+    void deleteByMyRoutineList(MyRoutineList myRoutineList);
 }

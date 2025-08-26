@@ -149,6 +149,8 @@ public class MyRoutineListService {
         if (!myRoutineList.getUser().equals(user)) {
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
+        myRoutineListRecordRepository.deleteByMyRoutineList(myRoutineList);
+
         myRoutineListRepository.delete(myRoutineList);
 
         return "삭제 됐습니다.";
@@ -162,7 +164,7 @@ public class MyRoutineListService {
         for(RoutineUpdateRequestDto routineUpdateRequestDto:routineInMyRoutineUpdateRequestDto.getUpdateRoutine()) {
             Routine routine = routineRepository.findById(routineUpdateRequestDto.getId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-            if (!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)) {
+            if (!routine.getRoutineMiddles().getRoutineList().getUser().equals(user)) {
                 throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
             }
             Emoji emoji = emojiRepository.findById(routineUpdateRequestDto.getEmojiId())
@@ -179,7 +181,7 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         Routine routine=routineRepository.findById(routineId)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-        if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+        if(!routine.getRoutineMiddles().getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         // 루틴기록 삭제
@@ -196,7 +198,8 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
 
         // 루틴의 소유권이 현재 사용자와 일치하는지 확인
-        if(routine.getRoutineMiddles().isEmpty() || !routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+        MyRoutineMiddle myRoutineMiddle=routine.getRoutineMiddles();
+        if(myRoutineMiddle==null || !myRoutineMiddle.getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
 
@@ -211,11 +214,60 @@ public class MyRoutineListService {
                     .routine(routine)
                     .doneCheck(true)
                     .build();
+            newRecord.setCreatedDate(startOfDay);
+            newRecord.setModifiedDate(startOfDay);
             routineRecordRepository.save(newRecord);
         }
+        MyRoutineList routineList = myRoutineMiddle.getRoutineList();
+        checkAndCompleteRoutineList(user, routineList, date);
+
 
 
         return "루틴이 완료 처리되었습니다.";
+    }
+
+
+    /**
+     * [추가된 헬퍼 메서드]
+     * 특정 루틴 리스트의 모든 루틴이 완료되었는지 확인하고, 그렇다면 리스트 자체를 완료 처리합니다.
+     */
+    private void checkAndCompleteRoutineList(User user, MyRoutineList routineList, LocalDate date) {
+        // 1. 해당 루틴 리스트에 포함된 모든 루틴들을 가져옵니다.
+        List<Routine> allRoutinesInList = routineList.getRoutineMiddles().stream()
+                .map(middle -> middle.getRoutine())
+                .collect(Collectors.toList());
+
+        if (allRoutinesInList.isEmpty()) {
+            return; // 루틴이 없는 리스트는 처리하지 않음
+        }
+
+        // 2. 오늘 완료된 루틴의 개수를 DB에서 직접 셉니다.
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+        long completedCount = routineRecordRepository.countCompletedRoutinesInList(user, startOfDay, endOfDay, allRoutinesInList);
+
+        System.out.println(allRoutinesInList.size()+"리스트 개수");
+        System.out.println(completedCount+"성공 개수");
+        // 3. 전체 루틴 개수와 완료된 루틴 개수가 같은지 비교합니다.
+        if (allRoutinesInList.size() == completedCount) {
+            // 4. 모든 루틴이 완료되었다면, MyRoutineListRecord에 기록을 남깁니다.
+            //    이미 기록이 있는지 확인하여 중복 저장을 방지합니다.
+            Optional<MyRoutineListRecord> recordOpt = myRoutineListRecordRepository
+                    .findByUserAndMyRoutineListAndCreatedDateBetween(user, routineList, startOfDay, endOfDay);
+
+            // 기록이 없을 경우에만 새로 생성합니다.
+            if (recordOpt.isEmpty()) {
+                MyRoutineListRecord newListRecord = MyRoutineListRecord.builder()
+                        .user(user)
+                        .myRoutineList(routineList)
+                        .doneCheck(true)
+                        .createdDate(startOfDay)
+                        .modifiedDate(startOfDay)
+                        .build();
+
+                myRoutineListRecordRepository.save(newListRecord);
+            }
+        }
     }
 
 
@@ -290,6 +342,8 @@ public class MyRoutineListService {
                     .user(user)
                     .myRoutineList(routineList)
                     .doneCheck(true)
+                    .createdDate(startOfDay)
+                    .modifiedDate(startOfDay)
                     .build();
             myRoutineListRecordRepository.save(newRecord);
         }

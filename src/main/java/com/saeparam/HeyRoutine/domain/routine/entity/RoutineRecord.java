@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -17,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoutineRecord extends BaseTime {
+public class RoutineRecord  {
 
     @Column(name = "routine_record_id", updatable = false, unique = true, nullable = false)
     @Id
@@ -34,6 +35,18 @@ public class RoutineRecord extends BaseTime {
 
     @Column(nullable = false)
     private boolean doneCheck;
+    @Column(nullable = false)
+    private LocalDateTime createdDate;
+    @Column(nullable = false)
+    private LocalDateTime modifiedDate;
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public void setModifiedDate(LocalDateTime modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
 
     public void updateDoneCheck(boolean doneCheck) {
         this.doneCheck = doneCheck;
