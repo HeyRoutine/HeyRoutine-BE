@@ -31,9 +31,9 @@ public class UserController {
 
 
     /**
-     * 닉네임 보기
+     * 내 정보 보기
      */
-    @PostMapping("/my-info")
+    @GetMapping("/my-info")
     @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
 
     public ResponseEntity<?> myInfo(@RequestHeader("Authorization") String token) {
