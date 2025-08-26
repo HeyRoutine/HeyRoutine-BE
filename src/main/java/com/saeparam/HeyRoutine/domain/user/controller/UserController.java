@@ -31,14 +31,14 @@ public class UserController {
 
 
     /**
-     * 닉네임 보기
+     * 내 정보 보기
      */
-    @PostMapping("/my-nickname")
-    @Operation(summary = "내 닉네임 확인 API", description = "내 닉네임을 확인합니다.")
+    @GetMapping("/my-info")
+    @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
 
-    public ResponseEntity<?> myNickname(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> myInfo(@RequestHeader("Authorization") String token) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(userService.findByNickname(userId)));
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(userService.myInfo(userId)));
     }
 
 
@@ -142,6 +142,14 @@ public class UserController {
     public ResponseEntity<?> resetNickname(@RequestHeader("Authorization") String token,@RequestParam("nickname") String nickname) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
         String result=userService.mypageResetNickname(userId,nickname);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    @DeleteMapping("/logout")
+    @Operation(summary = "로그아웃 API", description = "로그아웃 합니다.")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.logout(userId);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

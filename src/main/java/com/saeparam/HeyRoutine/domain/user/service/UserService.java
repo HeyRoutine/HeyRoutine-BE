@@ -1,6 +1,8 @@
 package com.saeparam.HeyRoutine.domain.user.service;
 
 
+import com.saeparam.HeyRoutine.domain.fcm.repository.FcmTokenRepository;
+import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
@@ -40,7 +42,7 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClientBankUtil webClientBankUtil;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final FcmTokenRepository fcmTokenRepository;
 
 
     @Transactional
@@ -121,10 +123,14 @@ public class UserService {
         return jwtToken;
     }
 
-    public String findByNickname(UUID userId) {
+    public MyInfoResponseDto myInfo(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        return user.getNickname();
+
+        return MyInfoResponseDto.builder()
+                .userImage(user.getProfileImage())
+                .nickname(user.getNickname())
+                .build();
     }
 
     @Transactional
@@ -190,4 +196,15 @@ public class UserService {
         return "닉네임이 변경되었습니다";
     }
 
+    @Transactional
+    public String logout(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        if (redisTemplate.opsForValue().get("RT:" + user.getId()) != null) {
+            redisTemplate.delete("RT:" + user.getId());
+        }
+        fcmTokenRepository.deleteAllByUser(user);
+
+        return "로그아웃 되었습니다.";
+    }
 }
