@@ -149,6 +149,8 @@ public class MyRoutineListService {
         if (!myRoutineList.getUser().equals(user)) {
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
+        myRoutineListRecordRepository.deleteByMyRoutineList(myRoutineList);
+
         myRoutineListRepository.delete(myRoutineList);
 
         return "삭제 됐습니다.";
@@ -162,7 +164,7 @@ public class MyRoutineListService {
         for(RoutineUpdateRequestDto routineUpdateRequestDto:routineInMyRoutineUpdateRequestDto.getUpdateRoutine()) {
             Routine routine = routineRepository.findById(routineUpdateRequestDto.getId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-            if (!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)) {
+            if (!routine.getRoutineMiddles().getRoutineList().getUser().equals(user)) {
                 throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
             }
             Emoji emoji = emojiRepository.findById(routineUpdateRequestDto.getEmojiId())
@@ -179,7 +181,7 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         Routine routine=routineRepository.findById(routineId)
                 .orElseThrow(()->new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
-        if(!routine.getRoutineMiddles().get(0).getRoutineList().getUser().equals(user)){
+        if(!routine.getRoutineMiddles().getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         // 루틴기록 삭제
@@ -196,8 +198,8 @@ public class MyRoutineListService {
                 .orElseThrow(() -> new RoutineHandler(ErrorStatus.SUB_ROUTINE_NOT_FOUND));
 
         // 루틴의 소유권이 현재 사용자와 일치하는지 확인
-        List<MyRoutineMiddle> myRoutineMiddle=routine.getRoutineMiddles();
-        if(myRoutineMiddle.isEmpty() || !myRoutineMiddle.get(0).getRoutineList().getUser().equals(user)){
+        MyRoutineMiddle myRoutineMiddle=routine.getRoutineMiddles();
+        if(myRoutineMiddle==null || !myRoutineMiddle.getRoutineList().getUser().equals(user)){
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
 
@@ -216,7 +218,7 @@ public class MyRoutineListService {
             newRecord.setModifiedDate(startOfDay);
             routineRecordRepository.save(newRecord);
         }
-        MyRoutineList routineList = myRoutineMiddle.get(0).getRoutineList();
+        MyRoutineList routineList = myRoutineMiddle.getRoutineList();
         checkAndCompleteRoutineList(user, routineList, date);
 
 
