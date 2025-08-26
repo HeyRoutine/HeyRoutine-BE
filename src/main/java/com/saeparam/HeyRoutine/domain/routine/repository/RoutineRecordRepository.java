@@ -40,6 +40,10 @@ public interface RoutineRecordRepository extends JpaRepository<RoutineRecord, Lo
      */
     void deleteAllByRoutine(Routine routine);
 
-
+    @Query("SELECT count(rr) FROM RoutineRecord rr " +
+            "WHERE rr.user = :user " +
+            "AND rr.createdDate >= :startOfDay AND rr.createdDate <= :endOfDay " +
+            "AND rr.routine IN :routines AND rr.doneCheck = true")
+    long countCompletedRoutinesInList(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, List<Routine> routines);
 }
 
