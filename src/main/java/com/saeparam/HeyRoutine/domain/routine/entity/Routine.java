@@ -34,8 +34,8 @@ public class Routine extends BaseTime {
     @Column(nullable = false)
     private int time;
 
-    @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MyRoutineMiddle> routineMiddles;
+    @OneToOne(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
+    private MyRoutineMiddle routineMiddles;
 
     @OneToMany(mappedBy = "routine", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RoutineRecord> routineRecords;
