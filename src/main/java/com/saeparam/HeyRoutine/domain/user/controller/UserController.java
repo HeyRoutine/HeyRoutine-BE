@@ -145,6 +145,14 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
+    @DeleteMapping("/logout")
+    @Operation(summary = "로그아웃 API", description = "로그아웃 합니다.")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        String result=userService.logout(userId);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
     // 탈퇴
 
 
