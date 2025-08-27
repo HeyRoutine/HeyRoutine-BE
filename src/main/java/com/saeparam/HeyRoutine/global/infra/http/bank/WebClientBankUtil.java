@@ -1,13 +1,7 @@
 package com.saeparam.HeyRoutine.global.infra.http.bank;
 
-import com.saeparam.HeyRoutine.domain.finance.dto.request.AccountTransferRequestDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.request.CheckAuthCodeRequestDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.request.OpenAccountAuthRequestDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.request.TransactionHistoryRequestDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.response.AccountTransferResponseDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
-import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.request.*;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.*;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankAccountHeaderDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankAccountMakeRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.request.BankUserMakeRequestDto;
@@ -126,6 +120,30 @@ public class WebClientBankUtil {
                         clientResponse.bodyToMono(String.class)
                                 .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
                 .bodyToMono(OpenAccountAuthResponseDto.class);
+    }
+
+    /**
+     * 계좌 거래내역 리스트 조회
+     */
+    public Mono<TransactionHistoryListResponseDto> inquireTransactionHistoryList(String userKey, String accountNo, LocalDate startDate, LocalDate endDate) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/inquireTransactionHistoryList";
+        BankAccountHeaderDto header = createHeader("inquireTransactionHistoryList", "inquireTransactionHistoryList", userKey);
+        TransactionHistoryListRequestDto requestDto = new TransactionHistoryListRequestDto(
+                header,
+                accountNo,
+                startDate.format(DATE_FMT),
+                endDate.format(DATE_FMT),
+                "A",
+                "DESC"
+        );
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+                .bodyToMono(TransactionHistoryListResponseDto.class);
     }
 
     /**
