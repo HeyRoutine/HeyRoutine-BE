@@ -200,6 +200,20 @@ public class UserService {
         return "닉네임이 변경되었습니다";
     }
 
+    /**
+     * 마케팅 수신 여부 업데이트
+     *
+     * @param userId     사용자 ID
+     * @param isMarketing 마케팅 수신 여부
+     */
+    @Transactional
+    public void updateIsMarketing(UUID userId, boolean isMarketing) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setMarketing(isMarketing);
+    }
+
+
     @Transactional
     public String logout(UUID userId) {
         User user = userRepository.findById(userId)

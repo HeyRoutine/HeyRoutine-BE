@@ -2,12 +2,9 @@ package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 
-import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.*;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
-import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignInDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
 import com.saeparam.HeyRoutine.domain.user.service.UserService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
@@ -134,6 +131,18 @@ public class UserController {
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
         String result=userService.resetPassword(resetPasswordDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 마케팅 수신 여부 업데이트
+     */
+    @PatchMapping("/marketing")
+    @Operation(summary = "마케팅 수신 동의/거부 API", description = "마케팅 수신 여부를 업데이트합니다.")
+    public ResponseEntity<?> updateIsMarketing(@RequestHeader("Authorization") String token,
+                                               @RequestBody MarketingRequestDto marketingRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateIsMarketing(userId, marketingRequestDto.isMarketing());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "마케팅 수신 동의/거부 업데이트 성공"));
     }
 
 

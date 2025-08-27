@@ -67,6 +67,8 @@ public class User extends BaseTime implements UserDetails {
 
   public void setAccountCertificationStatus(boolean accountCertificationStatus) { this.accountCertificationStatus = accountCertificationStatus; }
 
+  public void setMarketing(boolean isMarketing) { this.isMarketing = isMarketing; }
+
   @ElementCollection(fetch = FetchType.EAGER)
   @Builder.Default
   @Enumerated(EnumType.STRING) // Enum을 문자열로 저장
