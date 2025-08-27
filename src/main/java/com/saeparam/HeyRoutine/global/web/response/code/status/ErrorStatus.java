@@ -71,7 +71,14 @@ public enum ErrorStatus implements BaseErrorCode {
     GUESTBOOK_GET_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "해당 단체루틴에 속한 사용자만 볼 수 있습니다."),
     ROUTINE_FORBIDDEN(HttpStatus.FORBIDDEN, "ROUTINE4032", "루틴 관리자만 수정/삭제할 수 있습니다."),
 
-    ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4001","해당 Routine 을 찾을 수 업습니다. ")
+    ROUTINE_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4001","해당 Routine 을 찾을 수 업습니다. "),
+
+    // LLM AI 관련
+    AI_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI5000", "AI 서비스 요청 중 에러가 발생했습니다."),
+    AI_RESPONSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI5001", "AI 서비스 응답 처리 중 에러가 발생했습니다."),
+    AI_NO_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "AI5002", "AI 서비스로부터 응답이 없습니다."),
+
+
 
     ;
 

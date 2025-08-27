@@ -46,3 +46,6 @@ bank:
   base-url: ${bank.base-url}
   api-version: ${bank.api-version}
   api-key: ${bank.api-key}
+
+ai:
+  api-key: ${ai.api-key}
