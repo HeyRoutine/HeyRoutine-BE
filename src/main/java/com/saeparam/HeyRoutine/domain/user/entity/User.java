@@ -88,6 +88,7 @@ public class User extends BaseTime implements UserDetails {
     this.password = password;
   }
 
+  public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
   public static boolean hasRole(UserDetails user, Role role) {
     return user.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals(role.getRoleName()));

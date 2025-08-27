@@ -213,6 +213,18 @@ public class UserService {
         user.setMarketing(isMarketing);
     }
 
+    /**
+     * 프로필 이미지 변경
+     * @param userId 사용자 식별자
+     * @param profileImageUrl 변경할 프로필 이미지 URL
+     */
+    @Transactional
+    public void updateProfileImage(UUID userId, String profileImageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setProfileImage(profileImageUrl);
+    }
+
 
     @Transactional
     public String logout(UUID userId) {

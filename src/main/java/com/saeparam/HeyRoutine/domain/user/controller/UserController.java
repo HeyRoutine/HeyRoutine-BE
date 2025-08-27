@@ -162,6 +162,22 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
+    /**
+     * 프로필 이미지 변경 API
+     * @param token Bearer 토큰
+     * @param requestDto 프로필 이미지 URL 요청 DTO
+     * @return 성공 메시지
+     */
+    @PutMapping("/profileImage")
+    @Operation(summary = "프로필 이미지 변경 API", description = "프로필 이미지를 변경합니다.")
+    public ResponseEntity<?> updateProfileImage(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UpdateProfileImageDto requestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateProfileImage(userId, requestDto.getProfileImageUrl());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "프로필 이미지 변경 성공"));
+    }
+
     // 탈퇴
 
 
