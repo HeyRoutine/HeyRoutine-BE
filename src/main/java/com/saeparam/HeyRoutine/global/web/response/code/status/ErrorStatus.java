@@ -39,6 +39,10 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "USER4003", "로그인 정보가 일치하지 않습니다."),
     USER_NOT_MATCH(HttpStatus.UNAUTHORIZED, "USER4005", "접근 권한이 없습니다."),
 
+    // password 응답
+    PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "PASSWORD4000", "비밀번호가 맞지 않습니다."),
+    PASSWORD_SAME_AS_OLD(HttpStatus.CONFLICT, "PASSWORD4090", "기존 비밀번호와 동일합니다"),
+
     // mail 응답
     MAIL_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MAIL5000", "이메일 전송에 에러가 발생했습니다."),
     MAIL_NUMBER_IS_NULL(HttpStatus.BAD_REQUEST,"MAIL4000","인증번호를 입력해주세요"),

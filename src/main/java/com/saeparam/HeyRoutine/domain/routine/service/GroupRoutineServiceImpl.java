@@ -530,13 +530,21 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
         RoutineRecord record = routineRecordRepository.findRecordByDateAndRoutine(user, routine, startOfDay, endOfDay)
-                .orElse(RoutineRecord.builder()
-                        .user(user)
-                        .routine(routine)
-                        .doneCheck(statusDto.getStatus())
-                        .build());
+                .orElseGet(() -> {
+                    RoutineRecord newRecord = RoutineRecord.builder()
+                            .user(user)
+                            .routine(routine)
+                            .doneCheck(statusDto.getStatus())
+                            .build();
+                    newRecord.setCreatedDate(startOfDay);
+                    newRecord.setModifiedDate(startOfDay);
+                    return newRecord;
+                });
 
         record.updateDoneCheck(statusDto.getStatus());
+        if (record.getId() != 0) {
+            record.setModifiedDate(LocalDateTime.now());
+        }
         routineRecordRepository.save(record);
     }
 

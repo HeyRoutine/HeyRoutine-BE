@@ -54,6 +54,9 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private Long point;
 
+  @Column
+  private boolean isMarketing;
+
   public void setUserKey(String userKey) {
     this.userKey = userKey;
   }
@@ -63,6 +66,8 @@ public class User extends BaseTime implements UserDetails {
   }
 
   public void setAccountCertificationStatus(boolean accountCertificationStatus) { this.accountCertificationStatus = accountCertificationStatus; }
+
+  public void setMarketing(boolean isMarketing) { this.isMarketing = isMarketing; }
 
   @ElementCollection(fetch = FetchType.EAGER)
   @Builder.Default
@@ -83,6 +88,7 @@ public class User extends BaseTime implements UserDetails {
     this.password = password;
   }
 
+  public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
   public static boolean hasRole(UserDetails user, Role role) {
     return user.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals(role.getRoleName()));

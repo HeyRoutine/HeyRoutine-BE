@@ -2,12 +2,9 @@ package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 
-import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.*;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
-import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignInDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
 import com.saeparam.HeyRoutine.domain.user.service.UserService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
@@ -113,17 +110,17 @@ public class UserController {
     }
 
     /**
-     * mypage에서 비밀번호 재설정
-     * @param token
-     * @param password
-     * @return
+     * 마이페이지 비밀번호 재설정
+     * @param token 인증 토큰
+     * @param dto 기존 비밀번호와 새 비밀번호
      */
-    @PatchMapping("/mypage-password")
-    @Operation(summary = "비밀번호 재설정 API", description = "비밀번호를 재설정합니다.")
-    public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,@RequestParam("password") String password) {
+    @PostMapping("/mypage-password")
+    @Operation(summary = "비밀번호 재설정 API", description = "마이페이지에서 비밀번호를 재설정합니다.")
+    public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,
+                                                 @RequestBody MypageResetPasswordRequestDto dto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        String result=userService.mypageResetPassword(userId,password);
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+        userService.mypageResetPassword(userId, dto.getExsPassword(), dto.getNewPassword());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "비밀번호 변경 완료."));
     }
 
     /**
@@ -134,6 +131,18 @@ public class UserController {
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto) {
         String result=userService.resetPassword(resetPasswordDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 마케팅 수신 여부 업데이트
+     */
+    @PatchMapping("/marketing")
+    @Operation(summary = "마케팅 수신 동의/거부 API", description = "마케팅 수신 여부를 업데이트합니다.")
+    public ResponseEntity<?> updateIsMarketing(@RequestHeader("Authorization") String token,
+                                               @RequestBody MarketingRequestDto marketingRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateIsMarketing(userId, marketingRequestDto.isMarketing());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "마케팅 수신 동의/거부 업데이트 성공"));
     }
 
 
@@ -151,6 +160,22 @@ public class UserController {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
         String result=userService.logout(userId);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    /**
+     * 프로필 이미지 변경 API
+     * @param token Bearer 토큰
+     * @param requestDto 프로필 이미지 URL 요청 DTO
+     * @return 성공 메시지
+     */
+    @PutMapping("/profileImage")
+    @Operation(summary = "프로필 이미지 변경 API", description = "프로필 이미지를 변경합니다.")
+    public ResponseEntity<?> updateProfileImage(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UpdateProfileImageDto requestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.updateProfileImage(userId, requestDto.getProfileImageUrl());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "프로필 이미지 변경 성공"));
     }
 
     // 탈퇴
