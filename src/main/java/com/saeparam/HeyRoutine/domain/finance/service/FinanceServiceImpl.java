@@ -9,8 +9,10 @@ import com.saeparam.HeyRoutine.domain.finance.template.ExpenseTemplates;
 import com.saeparam.HeyRoutine.domain.finance.template.TransactionTemplate;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
 import com.saeparam.HeyRoutine.global.infra.messaging.FcmService;
+import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -164,7 +166,7 @@ public class FinanceServiceImpl implements FinanceService{
     @Transactional(readOnly = true)
     public TransactionHistoryListResponseDto getTransactionHistoryList(UUID userId, LocalDate startDate, LocalDate endDate) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         return webClientBankUtil.inquireTransactionHistoryList(
                 user.getUserKey(),
                 user.getBankAccount(),

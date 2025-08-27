@@ -9,6 +9,7 @@ import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryLis
 import com.saeparam.HeyRoutine.domain.finance.service.FinanceService;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
+import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.infra.http.ai.WebClientAiUtil;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
@@ -54,7 +55,7 @@ public class SpendingAnalysisService {
         try {
             json = objectMapper.writeValueAsString(history);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize transaction history", e);
+            throw new TokenHandler(ErrorStatus.AI_SERVICE_ERROR);
         }
 
         String prompt = "다음 JSON 데이터를 분석하여 사용자의 주간 소비 패턴을 파악하고, 최대 3개의 핵심 문장으로 분석 결과를 제공하세요. 각 문장은 50자 이내여야 합니다. 소비 분석, 팁, 예상 지출액 등을 포함해 주세요.\n\nJSON 데이터: "
@@ -74,7 +75,7 @@ public class SpendingAnalysisService {
         try {
             response = objectMapper.readValue(aiText, WeeklySpendingAnalysisAiResponseDto.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse AI response", e);
+            throw new TokenHandler(ErrorStatus.AI_RESPONSE_ERROR);
         }
 
         if (response.getAnalysis() == null) {
