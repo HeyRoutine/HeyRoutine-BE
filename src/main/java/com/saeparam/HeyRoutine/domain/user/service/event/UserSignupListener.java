@@ -7,6 +7,7 @@ import com.saeparam.HeyRoutine.domain.user.dto.response.BankUserMakeResponseDto;
 import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -21,6 +22,9 @@ class UserSignupListener {
     private final UserAccountUpdater userAccountUpdater;
     private final FinanceService financeService;
 
+    @Value("${bank.unique}")
+    private String unique;
+
     /**
      * UserSignedUpEvent가 발행되면, 회원가입 트랜잭션이 '커밋된 후에' 이 메서드가 실행됩니다.
      * 이를 통해 Race Condition을 방지합니다.
@@ -30,7 +34,7 @@ class UserSignupListener {
 
     public void handleUserSignedUp(UserSignedUpEvent event) {
 
-        log.info("회원가입 트랜잭션 커밋 확인. 비동기 계좌 생성을 시작합니다. email: {}", event.getEmail());
+        log.info("회원가입 트랜잭션 커밋 확인. 비동기 계좌 생성을 시작합니다. email: {}", unique+event.getEmail());
         bankAccountMake(event.getEmail());
     }
 

@@ -9,6 +9,9 @@ import lombok.*;
 @Builder
 public class MyInfoResponseDto {
     private String nickname;
-    private String userImage;
-
+    private String profileImage;
+    private String bankAccount;
+    private Long point;
+    private Boolean isMarketing;
+    private Boolean accountCertificationStatus;
 }

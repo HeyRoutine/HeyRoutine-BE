@@ -128,8 +128,12 @@ public class UserService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         return MyInfoResponseDto.builder()
-                .userImage(user.getProfileImage())
+                .profileImage(user.getProfileImage())
                 .nickname(user.getNickname())
+                .bankAccount(user.getBankAccount())
+                .point(user.getPoint())
+                .isMarketing(user.isMarketing())
+                .accountCertificationStatus(user.isAccountCertificationStatus())
                 .build();
     }
 
@@ -168,12 +172,25 @@ public class UserService {
     }
 
     @Transactional
-    public String mypageResetPassword(UUID userId, String password) {
+    public void mypageResetPassword(UUID userId, String exsPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
-        return "비밀번호가 변경되었습니다";
+        String encodedExistingPassword = user.getPassword();
+        String encodedExsPassword = passwordEncoder.encode(exsPassword);
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+
+        // 기존 비밀번호 검증
+        if (!passwordEncoder.matches(exsPassword, encodedExistingPassword)) {
+            throw new UserHandler(ErrorStatus.PASSWORD_NOT_MATCH);
+        }
+
+        // 새 비밀번호가 기존과 동일한지 확인
+        if (passwordEncoder.matches(newPassword, encodedExistingPassword) ||
+                passwordEncoder.matches(newPassword, encodedExsPassword)) {
+            throw new UserHandler(ErrorStatus.PASSWORD_SAME_AS_OLD);
+        }
+
+        user.setPassword(encodedNewPassword);
     }
 
     /**
@@ -195,6 +212,32 @@ public class UserService {
 
         return "닉네임이 변경되었습니다";
     }
+
+    /**
+     * 마케팅 수신 여부 업데이트
+     *
+     * @param userId     사용자 ID
+     * @param isMarketing 마케팅 수신 여부
+     */
+    @Transactional
+    public void updateIsMarketing(UUID userId, boolean isMarketing) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setMarketing(isMarketing);
+    }
+
+    /**
+     * 프로필 이미지 변경
+     * @param userId 사용자 식별자
+     * @param profileImageUrl 변경할 프로필 이미지 URL
+     */
+    @Transactional
+    public void updateProfileImage(UUID userId, String profileImageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setProfileImage(profileImageUrl);
+    }
+
 
     @Transactional
     public String logout(UUID userId) {
