@@ -21,6 +21,7 @@ public class SignUpDto {
     private String nickname; //닉네임
     private String profileImage;
     private List<Role> roles;
+    private Boolean isMarketing; // 마케팅 수신 동의 여부
 
     public User toEntity(SignUpDto signUpDto,String encodedPassword) {
 
@@ -31,6 +32,7 @@ public class SignUpDto {
                 .profileImage(signUpDto.getProfileImage())
                 .point(0L)
                 .roles(signUpDto.getRoles())
+                .isMarketing(signUpDto.getIsMarketing())
                 .build();
     }
 }

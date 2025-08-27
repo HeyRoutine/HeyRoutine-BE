@@ -128,8 +128,12 @@ public class UserService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         return MyInfoResponseDto.builder()
-                .userImage(user.getProfileImage())
+                .profileImage(user.getProfileImage())
                 .nickname(user.getNickname())
+                .bankAccount(user.getBankAccount())
+                .point(user.getPoint())
+                .isMarketing(user.isMarketing())
+                .accountCertificationStatus(user.isAccountCertificationStatus())
                 .build();
     }
 

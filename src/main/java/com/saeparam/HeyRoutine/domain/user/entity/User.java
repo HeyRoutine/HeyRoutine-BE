@@ -54,6 +54,9 @@ public class User extends BaseTime implements UserDetails {
   @Column
   private Long point;
 
+  @Column
+  private boolean isMarketing;
+
   public void setUserKey(String userKey) {
     this.userKey = userKey;
   }
