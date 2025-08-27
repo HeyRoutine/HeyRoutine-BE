@@ -2,7 +2,11 @@ package com.saeparam.HeyRoutine.domain.analysis.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.saeparam.HeyRoutine.domain.analysis.dto.request.AnalysisMyConsumptionRequestDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.request.DailyModelRequestDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.request.GeminiReqDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.response.AnalysisMyConsumptionResponseDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.response.DailyModelResponseDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.GeminiResDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.WeeklySpendingAnalysisAiResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryListResponseDto;
@@ -12,6 +16,7 @@ import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
 import com.saeparam.HeyRoutine.global.infra.http.ai.WebClientAiUtil;
+import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,9 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 소비 패턴 분석 서비스를 담당
@@ -35,6 +38,7 @@ public class SpendingAnalysisService {
     private final UserRepository userRepository;
     private final WebClientAiUtil webClientAiUtil;
     private final ObjectMapper objectMapper;
+    private final WebClientBankUtil webClientBankUtil;
 
     /**
      * 이번 주 소비 패턴을 분석하여 반환한다.
@@ -82,5 +86,46 @@ public class SpendingAnalysisService {
             return Collections.emptyList();
         }
         return response.getAnalysis();
+    }
+
+    public DailyModelResponseDto getDailyRoutineRecommend(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        DailyModelResponseDto dailyModelResponseDto=webClientAiUtil.getDailyModel(DailyModelRequestDto.builder()
+                .user_id(user.getId().toString())
+                .top_k("10")
+                .exclude_already_planned(false)
+                .allow_owned(true)
+                .build());
+
+        return dailyModelResponseDto;
+
+    }
+
+    public Object analysisMyConsumptionRecommend(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        LocalDate today=LocalDate.now();
+        LocalDate thirtyDaysAgo = today.minusDays(30);
+        TransactionHistoryListResponseDto consumptionList=webClientBankUtil.inquireTransactionHistoryList(user.getUserKey(),user.getBankAccount(),thirtyDaysAgo,today).block();
+
+        List<TransactionHistoryListResponseDto.History> spendingHistory = consumptionList.getRec().getList().stream()
+                .filter(history -> "출금".equals(history.getTransactionTypeName()))
+                .toList();
+
+        long myTotalSpending = spendingHistory.stream()
+                .mapToLong(history -> Long.parseLong(history.getTransactionBalance().replace(",", "")))
+                .sum();
+
+        List<String> transactionSummaries = spendingHistory.stream()
+                .map(TransactionHistoryListResponseDto.History::getTransactionSummary)
+                .toList();
+        AnalysisMyConsumptionResponseDto analysisMyConsumptionResponseDto= webClientAiUtil.analysisMyConsumption(AnalysisMyConsumptionRequestDto.builder()
+                .texts(transactionSummaries).build());
+        System.out.println(analysisMyConsumptionResponseDto.getItems());
+        // 여기부터 다시수정 AI서버 에러터짐 십ㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂㅂ발ㄹㄹㄹㄹㄹㄹㄹㄹㄹ
+        return null;
+
     }
 }
