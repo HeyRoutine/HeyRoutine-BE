@@ -44,6 +44,7 @@ cloud:
       secret-key: ${cloud.aws.s3.secret-key}
 
 bank:
+  unique: ${bank.unique}
   base-url: ${bank.base-url}
   api-version: ${bank.api-version}
   api-key: ${bank.api-key}
