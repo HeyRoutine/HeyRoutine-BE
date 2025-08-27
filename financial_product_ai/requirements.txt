@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+numpy
+lightgbm
+joblib
+fastapi<0.111
+dotenv
