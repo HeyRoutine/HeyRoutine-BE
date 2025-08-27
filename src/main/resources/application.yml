@@ -8,6 +8,20 @@ spring:
     password: ${spring.datasource.password}
     driver-class-name: ${spring.datasource.driver-class-name}
 
+  kafka:
+    bootstrap-servers: localhost:10000,localhost:10001,localhost:10002
+    producer:
+      topic1: ranker1
+      topic2: ranker2
+      topic3: ranker3
+
+    consumer:
+      topic1: ranker1
+      topic2: ranker2
+      topic3: ranker3
+
+    group-id: group
+
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
@@ -27,6 +41,7 @@ spring:
 server:
   servlet:
     context-path: /api/v1
+  port: 8081
 
 mail:
   username: ${mail.username}
