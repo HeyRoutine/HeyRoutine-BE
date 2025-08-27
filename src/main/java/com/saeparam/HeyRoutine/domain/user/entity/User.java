@@ -49,13 +49,13 @@ public class User extends BaseTime implements UserDetails {
 
   // 1원 계좌인증 상태
   @Column
-  private boolean accountCertificationStatus;
+  private Boolean accountCertificationStatus;
 
   @Column
   private Long point;
 
   @Column
-  private boolean isMarketing;
+  private Boolean isMarketing;
 
   public void setUserKey(String userKey) {
     this.userKey = userKey;
