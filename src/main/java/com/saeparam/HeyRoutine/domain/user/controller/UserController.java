@@ -2,12 +2,9 @@ package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 
-import com.saeparam.HeyRoutine.domain.user.dto.request.ResetPasswordDto;
+import com.saeparam.HeyRoutine.domain.user.dto.request.*;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
-import com.saeparam.HeyRoutine.domain.user.dto.request.ReissueDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignInDto;
-import com.saeparam.HeyRoutine.domain.user.dto.request.SignUpDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
 import com.saeparam.HeyRoutine.domain.user.service.UserService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
@@ -113,17 +110,17 @@ public class UserController {
     }
 
     /**
-     * mypage에서 비밀번호 재설정
-     * @param token
-     * @param password
-     * @return
+     * 마이페이지 비밀번호 재설정
+     * @param token 인증 토큰
+     * @param dto 기존 비밀번호와 새 비밀번호
      */
-    @PatchMapping("/mypage-password")
-    @Operation(summary = "비밀번호 재설정 API", description = "비밀번호를 재설정합니다.")
-    public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,@RequestParam("password") String password) {
+    @PostMapping("/mypage-password")
+    @Operation(summary = "비밀번호 재설정 API", description = "마이페이지에서 비밀번호를 재설정합니다.")
+    public ResponseEntity<?> mypageResetPassword(@RequestHeader("Authorization") String token,
+                                                 @RequestBody MypageResetPasswordRequestDto dto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-        String result=userService.mypageResetPassword(userId,password);
-        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+        userService.mypageResetPassword(userId, dto.getExsPassword(), dto.getNewPassword());
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "비밀번호 변경 완료."));
     }
 
     /**

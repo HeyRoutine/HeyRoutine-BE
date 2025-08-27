@@ -168,12 +168,25 @@ public class UserService {
     }
 
     @Transactional
-    public String mypageResetPassword(UUID userId, String password) {
+    public void mypageResetPassword(UUID userId, String exsPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
-        return "비밀번호가 변경되었습니다";
+        String encodedExistingPassword = user.getPassword();
+        String encodedExsPassword = passwordEncoder.encode(exsPassword);
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+
+        // 기존 비밀번호 검증
+        if (!passwordEncoder.matches(exsPassword, encodedExistingPassword)) {
+            throw new UserHandler(ErrorStatus.PASSWORD_NOT_MATCH);
+        }
+
+        // 새 비밀번호가 기존과 동일한지 확인
+        if (passwordEncoder.matches(newPassword, encodedExistingPassword) ||
+                passwordEncoder.matches(newPassword, encodedExsPassword)) {
+            throw new UserHandler(ErrorStatus.PASSWORD_SAME_AS_OLD);
+        }
+
+        user.setPassword(encodedNewPassword);
     }
 
     /**
