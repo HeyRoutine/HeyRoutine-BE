@@ -132,8 +132,8 @@ public class UserService {
                 .nickname(user.getNickname())
                 .bankAccount(user.getBankAccount())
                 .point(user.getPoint())
-                .isMarketing(user.isMarketing())
-                .accountCertificationStatus(user.isAccountCertificationStatus())
+                .isMarketing(user.getIsMarketing())
+                .accountCertificationStatus(user.getAccountCertificationStatus())
                 .build();
     }
 
@@ -224,6 +224,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         user.setMarketing(isMarketing);
+        userRepository.save(user);
     }
 
     /**
