@@ -35,6 +35,9 @@ public class WebClientBankUtil {
     @Value("${bank.api-key}")
     private String apiKey;
 
+    @Value("${bank.unique}")
+    private String unique;
+
     private String institutionCode="00100";
     private String fintechAppNo="001";
 
@@ -187,7 +190,7 @@ public class WebClientBankUtil {
     public <T, V> Mono<T> makeUserAccount(String email, V requestDto, Class<T> responseDtoClass) {
         String url=baseUrl+apiVersion+"/member";
         BankUserMakeRequestDto bankUserMakeRequestDto = BankUserMakeRequestDto.builder()
-                .userId(email)
+                .userId(unique+email)
                 .apiKey(apiKey)
                 .build();
         return webClientConfig.webClient().method(HttpMethod.POST)

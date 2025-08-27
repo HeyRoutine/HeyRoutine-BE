@@ -128,8 +128,12 @@ public class UserService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         return MyInfoResponseDto.builder()
-                .userImage(user.getProfileImage())
+                .profileImage(user.getProfileImage())
                 .nickname(user.getNickname())
+                .bankAccount(user.getBankAccount())
+                .point(user.getPoint())
+                .isMarketing(user.isMarketing())
+                .accountCertificationStatus(user.isAccountCertificationStatus())
                 .build();
     }
 
@@ -208,6 +212,32 @@ public class UserService {
 
         return "닉네임이 변경되었습니다";
     }
+
+    /**
+     * 마케팅 수신 여부 업데이트
+     *
+     * @param userId     사용자 ID
+     * @param isMarketing 마케팅 수신 여부
+     */
+    @Transactional
+    public void updateIsMarketing(UUID userId, boolean isMarketing) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setMarketing(isMarketing);
+    }
+
+    /**
+     * 프로필 이미지 변경
+     * @param userId 사용자 식별자
+     * @param profileImageUrl 변경할 프로필 이미지 URL
+     */
+    @Transactional
+    public void updateProfileImage(UUID userId, String profileImageUrl) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        user.setProfileImage(profileImageUrl);
+    }
+
 
     @Transactional
     public String logout(UUID userId) {
