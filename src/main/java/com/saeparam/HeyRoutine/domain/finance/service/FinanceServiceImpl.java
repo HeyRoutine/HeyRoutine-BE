@@ -2,6 +2,7 @@ package com.saeparam.HeyRoutine.domain.finance.service;
 
 import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
+import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryListResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.template.DepositTemplates;
 import com.saeparam.HeyRoutine.domain.finance.template.ExpenseTemplates;
@@ -12,6 +13,8 @@ import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
 import com.saeparam.HeyRoutine.global.infra.messaging.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDate;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -152,5 +155,21 @@ public class FinanceServiceImpl implements FinanceService{
                             .onErrorResume(e -> Mono.empty()))
                     .then();
         })).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    /**
+     * 특정 기간의 거래내역을 조회하여 반환한다.
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public TransactionHistoryListResponseDto getTransactionHistoryList(UUID userId, LocalDate startDate, LocalDate endDate) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return webClientBankUtil.inquireTransactionHistoryList(
+                user.getUserKey(),
+                user.getBankAccount(),
+                startDate,
+                endDate
+        ).block();
     }
 }

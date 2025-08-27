@@ -1,8 +1,10 @@
 package com.saeparam.HeyRoutine.domain.finance.service;
 
+import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryListResponseDto;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 public interface FinanceService {
 
@@ -30,4 +32,14 @@ public interface FinanceService {
      * @param accountNo 계좌번호
      */
     Mono<Void> generateDummyTransactions(String userKey, String accountNo);
+
+    /**
+     * 특정 기간의 거래내역을 조회한다.
+     *
+     * @param userId 사용자 ID
+     * @param startDate 조회 시작일
+     * @param endDate 조회 종료일
+     * @return 거래내역 응답 DTO
+     */
+    TransactionHistoryListResponseDto getTransactionHistoryList(UUID userId, LocalDate startDate, LocalDate endDate);
 }

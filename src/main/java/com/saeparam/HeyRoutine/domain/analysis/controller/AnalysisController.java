@@ -4,6 +4,7 @@ package com.saeparam.HeyRoutine.domain.analysis.controller;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.MaxStreakResponseDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.WeeklySummaryDto;
 import com.saeparam.HeyRoutine.domain.analysis.service.AnalysisService;
+import com.saeparam.HeyRoutine.domain.analysis.service.SpendingAnalysisService;
 import com.saeparam.HeyRoutine.domain.routine.enums.Category;
 import com.saeparam.HeyRoutine.domain.routine.enums.RoutineType;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
@@ -27,6 +28,7 @@ public class AnalysisController {
 
     private final AnalysisService analysisService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final SpendingAnalysisService spendingAnalysisService;
 
     @GetMapping("/weekly-summary")
     @Operation(summary = "주간 요약 데이터 조회 API", description = "선택된 기간 동안의 루틴별 수행 여부를 조회합니다.")
@@ -44,6 +46,14 @@ public class AnalysisController {
     public ResponseEntity<?> getMaxStreak(@RequestHeader("Authorization") String token) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
         MaxStreakResponseDto result = analysisService.calculateMaxStreak(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
+    }
+
+    @GetMapping("/weekly")
+    @Operation(summary = "이번 주 소비패턴 분석 조회 API", description = "이번 주 소비내역을 AI로 분석합니다.")
+    public ResponseEntity<?> getWeeklySpendingAnalysis(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        List<String> result = spendingAnalysisService.getWeeklySpendingAnalysis(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 }
