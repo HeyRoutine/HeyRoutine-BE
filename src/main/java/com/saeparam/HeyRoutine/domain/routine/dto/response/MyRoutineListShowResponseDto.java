@@ -55,6 +55,7 @@ public class MyRoutineListShowResponseDto {
 			.collect(Collectors.toList());
         return MyRoutineListShowResponseDto.builder()
             .id(myRoutineList.getId())
+			.routineType(myRoutineList.getRoutineType())
             .title(myRoutineList.getTitle())
             .startTime(myRoutineList.getStartTime().toString())
             .endTime(myRoutineList.getEndTime().toString())
