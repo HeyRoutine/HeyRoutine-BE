@@ -151,8 +151,8 @@ public class GroupRoutineResponseDto {
         @Schema(description = "상세 루틴 ID", example = "1")
         private Long id;
 
-        @Schema(description = "이모지 ID", example = "1")
-        private Long emojiId;
+        @Schema(description = "이모지 URL", example = "https://example.com/emoji.png")
+        private String emojiUrl;
 
         @Schema(description = "루틴 이름", example = "커피 내리기")
         private String name;

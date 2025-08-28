@@ -372,7 +372,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         List<GroupRoutineResponseDto.RoutineInfo> routineInfos = routines.stream()
                 .map(r -> GroupRoutineResponseDto.RoutineInfo.builder()
                         .id(r.getId())
-                        .emojiId(r.getEmoji().getId())
+                        .emojiUrl(r.getEmoji().getEmojiUrl())
                         .name(r.getName())
                         .time(r.getTime())
                         .isCompleted(isJoined ? completedIds.contains(r.getId()) : null)
