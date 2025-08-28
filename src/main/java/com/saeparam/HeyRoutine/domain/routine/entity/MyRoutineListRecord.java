@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MyRoutineListRecord {
+public class MyRoutineListRecord extends BaseTime {
 
     @Column(name = "my_routine_list_record_id", updatable = false, unique = true, nullable = false)
     @Id
@@ -32,17 +32,4 @@ public class MyRoutineListRecord {
 
     @Column(name = "done_check", nullable = false)
     private boolean doneCheck;
-
-    @Column(nullable = false)
-    private LocalDateTime createdDate;
-    @Column(nullable = false)
-    private LocalDateTime modifiedDate;
-
-    public void setCreatedDate(LocalDateTime createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public void setModifiedDate(LocalDateTime modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
 }

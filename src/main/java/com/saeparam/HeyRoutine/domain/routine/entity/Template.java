@@ -19,7 +19,7 @@ public class Template {
     @Column(name = "category", nullable = false, length = 255)
     private Category category;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "routine_name", nullable = false, length = 255)
     private String name;
 
     @Column(name = "content", nullable = false, length = 255)

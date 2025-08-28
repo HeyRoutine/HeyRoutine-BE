@@ -16,7 +16,10 @@ import com.saeparam.HeyRoutine.domain.routine.repository.MyRoutineListRepository
 import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRecordRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
+import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
+import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
+import com.saeparam.HeyRoutine.domain.user.repository.UserSurveyFlagsRepository;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
@@ -58,6 +61,7 @@ public class UserService {
     private final WebClientBankUtil webClientBankUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final FcmTokenRepository fcmTokenRepository;
+    private final UserSurveyFlagsRepository userSurveyFlagsRepository;
     private final MyRoutineListRepository myRoutineListRepository;
     private final MyRoutineListRecordRepository myRoutineListRecordRepository;
     private final RoutineRepository routineRepository;
@@ -275,6 +279,55 @@ public class UserService {
         fcmTokenRepository.deleteAllByUser(user);
 
         return "로그아웃 되었습니다.";
+    }
+
+    @Transactional
+    public void survey(UUID userId, SurveyRequestDto surveyRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        // 3. UserSurveyFlags 엔티티 빌더 생성
+        UserSurveyFlags.UserSurveyFlagsBuilder builder = UserSurveyFlags.builder()
+                .userId(user.getId().toString());
+
+
+        // 4. 리스트의 값을 각 필드에 매핑
+        builder.q0(surveyRequestDto.getSurveyList().get(0));
+        builder.q1(surveyRequestDto.getSurveyList().get(1));
+        builder.q2(surveyRequestDto.getSurveyList().get(2));
+        builder.q3(surveyRequestDto.getSurveyList().get(3));
+        builder.q4(surveyRequestDto.getSurveyList().get(4));
+        builder.q5(surveyRequestDto.getSurveyList().get(5));
+        builder.q6(surveyRequestDto.getSurveyList().get(6));
+        builder.q7(surveyRequestDto.getSurveyList().get(7));
+        builder.q8(surveyRequestDto.getSurveyList().get(8));
+        builder.q9(surveyRequestDto.getSurveyList().get(9));
+        builder.q10(surveyRequestDto.getSurveyList().get(10));
+        builder.q11(surveyRequestDto.getSurveyList().get(11));
+        builder.q12(surveyRequestDto.getSurveyList().get(12));
+        builder.q13(surveyRequestDto.getSurveyList().get(13));
+        builder.q14(surveyRequestDto.getSurveyList().get(14));
+        builder.q15(surveyRequestDto.getSurveyList().get(15));
+        builder.q16(surveyRequestDto.getSurveyList().get(16));
+        builder.q17(surveyRequestDto.getSurveyList().get(17));
+        builder.q18(surveyRequestDto.getSurveyList().get(18));
+        builder.q19(surveyRequestDto.getSurveyList().get(19));
+        builder.q20(surveyRequestDto.getSurveyList().get(20));
+        builder.q21(surveyRequestDto.getSurveyList().get(21));
+        builder.q22(surveyRequestDto.getSurveyList().get(22));
+        builder.q23(surveyRequestDto.getSurveyList().get(23));
+        builder.q24(surveyRequestDto.getSurveyList().get(24));
+        builder.q25(surveyRequestDto.getSurveyList().get(25));
+        builder.q26(surveyRequestDto.getSurveyList().get(26));
+        builder.q27(surveyRequestDto.getSurveyList().get(27));
+        builder.q28(surveyRequestDto.getSurveyList().get(28));
+        builder.q29(surveyRequestDto.getSurveyList().get(29));
+        builder.q30(surveyRequestDto.getSurveyList().get(30));
+        builder.q31(surveyRequestDto.getSurveyList().get(31));
+        builder.q32(surveyRequestDto.getSurveyList().get(32));
+
+        // 5. 빌드된 엔티티를 저장
+        UserSurveyFlags userSurveyFlags = builder.build();
+        userSurveyFlagsRepository.save(userSurveyFlags);
     }
 
     /**

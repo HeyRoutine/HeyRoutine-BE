@@ -45,7 +45,8 @@ public class MyRoutineListService {
     private final RoutineRepository routineRepository;
     private final RoutineRecordRepository routineRecordRepository;
     private final MyRoutineListRecordRepository myRoutineListRecordRepository;
-
+    private final UserWeeklyPlanWithRoutineRepository userWeeklyPlanWithRoutineRepository;
+    private final TemplateRepository templateRepository;
 
 
 
@@ -104,10 +105,13 @@ public class MyRoutineListService {
             double percent = routineCount > 0 ? Math.round((double) doneCount * 1000 / routineCount) / 10.0 : 0.0;
 
             MyRoutineListShowResponseDto dto = MyRoutineListShowResponseDto.toDto(list);
+            dto.setRoutineNums(routineCount);
             dto.setPercent(percent);
 
             List<String> successDay = weekRecords.stream()
-                    .filter(record -> record.isDoneCheck() && record.getMyRoutineList().equals(list))
+                    .filter(record -> record.isDoneCheck()
+                    && record.getMyRoutineList() != null
+                    && record.getMyRoutineList().getId() == list.getId())
                     .map(record -> DayType.from(record.getCreatedDate().getDayOfWeek()).name())
                     .distinct()
                     .collect(Collectors.toList());
@@ -127,6 +131,15 @@ public class MyRoutineListService {
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         for(RoutineRequestDto routineRequest:routineRequestDtoList) {
+            if(templateRepository.existsByName(routineRequest.getRoutineName())){
+                userWeeklyPlanWithRoutineRepository.save(UserWeeklyPlanWithRoutine.builder()
+                        .routineName(routineRequest.getRoutineName())
+                        .importance(3)
+                        .userId(user.getId().toString())
+                        .build()
+                );
+
+            }
             Emoji emoji = emojiRepository.findById(routineRequest.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
             Routine routine = routineRepository.save(RoutineRequestDto.toEntity(routineRequest, emoji));
@@ -274,9 +287,10 @@ public class MyRoutineListService {
                         .user(user)
                         .myRoutineList(routineList)
                         .doneCheck(true)
-                        .createdDate(startOfDay)
-                        .modifiedDate(startOfDay)
                         .build();
+
+                newListRecord.setCreatedDate(startOfDay);
+                newListRecord.setModifiedDate(startOfDay);
 
                 myRoutineListRecordRepository.save(newListRecord);
             }
@@ -355,9 +369,11 @@ public class MyRoutineListService {
                     .user(user)
                     .myRoutineList(routineList)
                     .doneCheck(true)
-                    .createdDate(startOfDay)
-                    .modifiedDate(startOfDay)
                     .build();
+
+            newRecord.setCreatedDate(startOfDay);
+            newRecord.setModifiedDate(startOfDay);
+
             myRoutineListRecordRepository.save(newRecord);
         }
 

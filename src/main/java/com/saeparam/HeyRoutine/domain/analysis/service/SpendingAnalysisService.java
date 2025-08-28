@@ -194,10 +194,17 @@ public class SpendingAnalysisService {
         ProductRecommendRequestDto requestDto = ProductRecommendRequestDto.builder()
                 .userId(userId.toString())
                 .transactions(transactionDtos)
-                .topK(10) // 요청 JSON 예시에 따라 10으로 고정
+                .topK(5) // 요청 JSON 예시에 따라 10으로 고정
                 .build();
+        ProductRecommendResponseDto aiResponse = webClientAiUtil.recommendProduct(requestDto);
 
-        // 3. WebClient를 통해 AI 서버에 추천 요청 및 결과 반환
-        return webClientAiUtil.recommendProduct(requestDto);
+        // 4. ✅ AI 응답을 SimpleProductResponseDto 리스트로 변환하여 반환
+        if (aiResponse == null || aiResponse.getResults() == null) {
+            return Collections.emptyList();
+        }
+
+        return aiResponse.getResults().stream() // results 리스트를 스트림으로 변환
+                .map(SimpleProductResponseDto::from) // 각 result 객체를 SimpleProductResponseDto로 매핑
+                .collect(Collectors.toList()); // 최종 결과를 리스트로 수집하여 반환
     }
 }
