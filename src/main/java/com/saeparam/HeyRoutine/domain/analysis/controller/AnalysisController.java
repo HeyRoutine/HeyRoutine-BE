@@ -56,4 +56,29 @@ public class AnalysisController {
         List<String> result = spendingAnalysisService.getWeeklySpendingAnalysis(userId);
         return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
+
+    @GetMapping("/daily")
+    @Operation(summary = "생활루틴 추천 조회 API", description = "생활루틴 추천을 AI가 추천해줍니다.")
+    public ResponseEntity<?> dailyRoutineRecommend(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.getDailyRoutineRecommend(userId)));
+    }
+
+    @GetMapping("/category")
+    @Operation(summary = "소비분석해서 패턴확인  API", description = "소비를 분석해서 해당유저의 소비패턴 분석")
+    public ResponseEntity<?> categoryRoutineRecommend(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.analysisMyConsumptionRecommend(userId)));
+    }
+
+
+    @GetMapping("/recommend-product")
+    @Operation(summary = "금융상품 추천  API", description = "해당유저의 소비패턴을 분석하여 금융상품 추천")
+    public ResponseEntity<?> recommendProduct(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.recommendProduct(userId)));
+    }
 }
