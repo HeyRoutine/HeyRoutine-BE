@@ -45,5 +45,12 @@ public interface RoutineRecordRepository extends JpaRepository<RoutineRecord, Lo
             "AND rr.createdDate >= :startOfDay AND rr.createdDate <= :endOfDay " +
             "AND rr.routine IN :routines AND rr.doneCheck = true")
     long countCompletedRoutinesInList(User user, LocalDateTime startOfDay, LocalDateTime endOfDay, List<Routine> routines);
+
+    /**
+     * 특정 사용자의 모든 루틴 수행 기록을 삭제합니다.
+     *
+     * @param user 삭제 대상 사용자
+     */
+    void deleteAllByUser(User user);
 }
 

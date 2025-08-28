@@ -41,11 +41,11 @@ public class HomeController {
      */
     @GetMapping("/groups")
     @Operation(summary = "내 단체루틴 조회 API", description = "사용자가 가입한 단체루틴 목록을 최신순으로 조회합니다.")
-    public ResponseEntity<ApiResponse<PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo>>> getMyGroupRoutines(
+    public ResponseEntity<ApiResponse<PaginatedResponse<GroupRoutineResponseDto.MyGroupRoutineInfo>>> getMyGroupRoutines(
             @RequestHeader("Authorization") String token,
             @PageableDefault(page = 0, size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
-        PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> response =
+        PaginatedResponse<GroupRoutineResponseDto.MyGroupRoutineInfo> response =
                 groupRoutineService.getMyGroupRoutines(uuid, pageable);
         if (response.items().isEmpty()) {
             return ResponseEntity.ok(ApiResponse.noContent());
