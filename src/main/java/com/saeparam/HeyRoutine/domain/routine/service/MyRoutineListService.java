@@ -105,10 +105,13 @@ public class MyRoutineListService {
             double percent = routineCount > 0 ? Math.round((double) doneCount * 1000 / routineCount) / 10.0 : 0.0;
 
             MyRoutineListShowResponseDto dto = MyRoutineListShowResponseDto.toDto(list);
+            dto.setRoutineNums(routineCount);
             dto.setPercent(percent);
 
             List<String> successDay = weekRecords.stream()
-                    .filter(record -> record.isDoneCheck() && record.getMyRoutineList().equals(list))
+                    .filter(record -> record.isDoneCheck()
+                    && record.getMyRoutineList() != null
+                    && record.getMyRoutineList().getId() == list.getId())
                     .map(record -> DayType.from(record.getCreatedDate().getDayOfWeek()).name())
                     .distinct()
                     .collect(Collectors.toList());
@@ -284,9 +287,10 @@ public class MyRoutineListService {
                         .user(user)
                         .myRoutineList(routineList)
                         .doneCheck(true)
-                        .createdDate(startOfDay)
-                        .modifiedDate(startOfDay)
                         .build();
+
+                newListRecord.setCreatedDate(startOfDay);
+                newListRecord.setModifiedDate(startOfDay);
 
                 myRoutineListRecordRepository.save(newListRecord);
             }
@@ -365,9 +369,11 @@ public class MyRoutineListService {
                     .user(user)
                     .myRoutineList(routineList)
                     .doneCheck(true)
-                    .createdDate(startOfDay)
-                    .modifiedDate(startOfDay)
                     .build();
+
+            newRecord.setCreatedDate(startOfDay);
+            newRecord.setModifiedDate(startOfDay);
+
             myRoutineListRecordRepository.save(newRecord);
         }
 
