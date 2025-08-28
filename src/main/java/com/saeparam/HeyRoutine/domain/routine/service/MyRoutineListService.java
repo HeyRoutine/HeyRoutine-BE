@@ -6,6 +6,7 @@ import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineInMyRoutineUpda
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.request.RoutineUpdateRequestDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.response.MyRoutineListShowResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.dto.response.RoutineResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
@@ -73,13 +74,18 @@ public class MyRoutineListService {
     }
 
     @Transactional(readOnly = true)
-    public PaginatedResponse<MyRoutineListResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDate date,Pageable pageable) {
+    public PaginatedResponse<MyRoutineListShowResponseDto> showMyRoutineList(UUID userId, DayType day, LocalDate date, Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         Page<MyRoutineList> myRoutineList = myRoutineListRepository.findByUserAndStartDateAfterAndDay(user, day, date, pageable);
 
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
+        List<MyRoutineListRecord> weekRecords = myRoutineListRecordRepository
+                .findByUserAndCreatedDateBetween(user, startOfWeek.atStartOfDay(), LocalDateTime.now());
 
         return PaginatedResponse.of(myRoutineList, list -> {
             // 상세 루틴 목록 조회
@@ -98,8 +104,15 @@ public class MyRoutineListService {
             }
             double percent = routineCount > 0 ? Math.round((double) doneCount * 1000 / routineCount) / 10.0 : 0.0;
 
-            MyRoutineListResponseDto dto = MyRoutineListResponseDto.toDto(list);
+            MyRoutineListShowResponseDto dto = MyRoutineListShowResponseDto.toDto(list);
             dto.setPercent(percent);
+
+            List<String> successDay = weekRecords.stream()
+                    .filter(record -> record.isDoneCheck() && record.getMyRoutineList().equals(list))
+                    .map(record -> DayType.from(record.getCreatedDate().getDayOfWeek()).name())
+                    .distinct()
+                    .collect(Collectors.toList());
+            dto.setSuccessDay(successDay);
             return dto;
         });
     }
