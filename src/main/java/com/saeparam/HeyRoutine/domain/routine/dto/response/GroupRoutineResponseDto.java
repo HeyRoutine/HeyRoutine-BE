@@ -94,6 +94,52 @@ public class GroupRoutineResponseDto {
     }
 
     /**
+     * <h4>내 단체 루틴 기본 정보</h4>
+     * <p>홈 화면에서 내가 가입한 단체 루틴을 조회할 때 사용되는 DTO 입니다.</p>
+     */
+    @Getter
+    @Builder
+    @Schema(description = "내 단체 루틴 기본 정보 DTO")
+    public static class MyGroupRoutineInfo {
+        @Schema(description = "단체 루틴 ID", example = "1")
+        private Long id;
+
+        @Schema(description = "루틴 타입 (DAILY: 일상, FINANCE: 소비)", example = "FINANCE")
+        private RoutineType routineType;
+
+        @Schema(description = "단체 루틴 타이틀", example = "티끌모아 태산")
+        private String title;
+
+        @Schema(description = "단체 루틴 설명", example = "주 1회 가게부 작성, 뉴스 스크랩 관련 루틴")
+        private String description;
+
+        @Schema(description = "루틴 시작 시간 (HH:mm)", example = "20:00")
+        private String startTime;
+
+        @Schema(description = "루틴 종료 시간 (HH:mm)", example = "21:00")
+        private String endTime;
+
+        @Schema(description = "루틴 개수", example = "5")
+        private int routineNums;
+
+        @Schema(description = "참여중인 인원 수", example = "52")
+        private int peopleNums;
+
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        @Schema(description = "현재 루틴 진행률(소수점 첫째 자리)", example = "75.5")
+        private Double percent;
+
+        @Schema(description = "루틴 수행 요일 리스트", example = "[\"수\", \"일\"]")
+        private List<String> dayOfWeek;
+
+        @Schema(description = "이번 주 성공한 요일 리스트", example = "[\"수\"]")
+        private List<String> successDay;
+
+        @Schema(description = "현재 사용자의 참여 여부", example = "false")
+        private boolean isJoined;
+    }
+
+    /**
      * <h4>(공용) 상세 루틴 정보</h4>
      * <p>단체 루틴 상세 조회 시 사용되는 개별 루틴 정보 DTO 입니다.</p>
      */

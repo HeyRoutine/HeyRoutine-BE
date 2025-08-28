@@ -31,9 +31,9 @@ public interface GroupRoutineService {
      *
      * @param id       현재 로그인한 사용자의 uuid
      * @param pageable 페이지 번호, 페이지 크기 정보를 담은 객체
-     * @return {@link GroupRoutineResponseDto.GroupRoutineInfo} 단체 루틴 목록 정보
+     * @return {@link GroupRoutineResponseDto.MyGroupRoutineInfo} 단체 루틴 목록 정보
      */
-    PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getMyGroupRoutines(UUID id, Pageable pageable);
+    PaginatedResponse<GroupRoutineResponseDto.MyGroupRoutineInfo> getMyGroupRoutines(UUID id, Pageable pageable);
 
     /**
      * 키워드를 기준으로 단체 루틴을 검색합니다.
