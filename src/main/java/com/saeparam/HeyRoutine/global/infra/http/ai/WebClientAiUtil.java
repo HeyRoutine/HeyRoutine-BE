@@ -3,9 +3,11 @@ package com.saeparam.HeyRoutine.global.infra.http.ai;
 import com.saeparam.HeyRoutine.domain.analysis.dto.request.AnalysisMyConsumptionRequestDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.request.DailyModelRequestDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.request.GeminiReqDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.request.ProductRecommendRequestDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.AnalysisMyConsumptionResponseDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.DailyModelResponseDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.GeminiResDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.response.ProductRecommendResponseDto;
 import com.saeparam.HeyRoutine.global.config.WebClientConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,10 +34,23 @@ public class WebClientAiUtil {
     @Value("${ai.model:gemini-2.0-flash}")
     private String model;
 
-    private String aiUrl="http://127.0.0.1";
+    private String aiUrl="http://3.34.153.50";
+
+    public ProductRecommendResponseDto recommendProduct(ProductRecommendRequestDto requestDto) {
+        String url = aiUrl +":8081"+"/predict"; // 실제 AI 서버의 엔드포인트
+        return webClientConfig.webClient().method(HttpMethod.POST)
+                .uri(url)
+                .bodyValue(requestDto)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, clientResponse ->
+                        clientResponse.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException("AI Product Recommend Error: " + errorBody))))
+                .bodyToMono(ProductRecommendResponseDto.class)
+                .block();
+    }
 
     public AnalysisMyConsumptionResponseDto analysisMyConsumption(AnalysisMyConsumptionRequestDto requestDto) {
-        String url = aiUrl+":8001"+"/predict";
+        String url = aiUrl+":8080"+"/predict";
         System.out.println(url);
         return webClientConfig.webClient().method(HttpMethod.POST)
                 .uri(url)
@@ -49,7 +64,7 @@ public class WebClientAiUtil {
     }
 
     public DailyModelResponseDto getDailyModel(DailyModelRequestDto requestDto) {
-        String url = aiUrl+":8000"+"/recommend";
+        String url = aiUrl+":8082"+"/recommend";
         return webClientConfig.webClient().method(HttpMethod.POST)
                 .uri(url)
                 .bodyValue(requestDto)
@@ -73,4 +88,6 @@ public class WebClientAiUtil {
                                 .flatMap(errorBody -> Mono.error(new RuntimeException("AI Error: " + errorBody))))
                 .bodyToMono(GeminiResDto.class);
     }
+
+
 }

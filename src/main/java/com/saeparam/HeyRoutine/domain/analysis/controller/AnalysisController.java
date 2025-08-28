@@ -72,4 +72,13 @@ public class AnalysisController {
 
         return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.analysisMyConsumptionRecommend(userId)));
     }
+
+
+    @GetMapping("/recommend-product")
+    @Operation(summary = "금융상품 추천  API", description = "해당유저의 소비패턴을 분석하여 금융상품 추천")
+    public ResponseEntity<?> recommendProduct(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.recommendProduct(userId)));
+    }
 }

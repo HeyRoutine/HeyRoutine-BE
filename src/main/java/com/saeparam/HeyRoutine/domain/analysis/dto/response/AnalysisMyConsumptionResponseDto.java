@@ -13,5 +13,5 @@ import java.util.List;
 @Builder
 public class AnalysisMyConsumptionResponseDto {
 
-    private List<String> items;
+    private List<String> labels;
 }
