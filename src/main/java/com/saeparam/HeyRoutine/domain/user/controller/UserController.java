@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -25,6 +26,19 @@ public class UserController {
     private final UserService userService;
 
     private final JwtTokenProvider jwtTokenProvider;
+
+
+    /**
+     * 설문하기
+     */
+
+    @PostMapping("/survey")
+    @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
+    public ResponseEntity<?> survey(@RequestHeader("Authorization") String token, @RequestBody SurveyRequestDto surveyRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.survey(userId,surveyRequestDto);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess("설문이 저장되었습니다."));
+    }
 
 
     /**

@@ -194,7 +194,7 @@ public class SpendingAnalysisService {
         ProductRecommendRequestDto requestDto = ProductRecommendRequestDto.builder()
                 .userId(userId.toString())
                 .transactions(transactionDtos)
-                .topK(10) // 요청 JSON 예시에 따라 10으로 고정
+                .topK(5) // 요청 JSON 예시에 따라 10으로 고정
                 .build();
 
         // 3. WebClient를 통해 AI 서버에 추천 요청 및 결과 반환
