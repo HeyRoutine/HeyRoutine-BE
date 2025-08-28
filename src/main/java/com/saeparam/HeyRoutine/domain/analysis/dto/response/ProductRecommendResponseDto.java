@@ -17,4 +17,17 @@ public class ProductRecommendResponseDto {
     private int topK;
 
     private List<ResultDto> results;
+
+
+    @Getter
+    @NoArgsConstructor
+    public static class ResultDto { // ✅ ResultDto 클래스를 내부에 정의
+        private String bankName;
+        private String accountTypeName;
+        private String accountDscription;
+        private int subscriptionPeriod;
+        private double interesRate;
+        private double score;
+        private int rank;
+    }
 }
