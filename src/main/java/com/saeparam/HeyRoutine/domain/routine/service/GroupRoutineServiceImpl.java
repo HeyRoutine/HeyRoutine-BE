@@ -54,17 +54,23 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
 
     @Override
     @Transactional(readOnly = true)
-    public PaginatedResponse<GroupRoutineResponseDto.GroupRoutineInfo> getMyGroupRoutines(UUID userId, Pageable pageable) {
+    public PaginatedResponse<GroupRoutineResponseDto.MyGroupRoutineInfo> getMyGroupRoutines(UUID userId, Pageable pageable) {
         // 1. 사용자 존재 여부 확인
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // 2. 가입한 단체 루틴 목록 조회 (최신순)
+        // 2. 이번 주 완료 기록 조회
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
+        List<GroupRoutineListDoneCheck> weekRecords = groupRoutineListDoneCheckRepository
+                .findByUserAndCreatedDateBetween(user, startOfWeek.atStartOfDay(), LocalDateTime.now());
+
+        // 3. 가입한 단체 루틴 목록 조회 (최신순)
         Page<GroupRoutineList> routinePage = groupRoutineListRepository.findAllByUser(user, pageable);
 
 
-        // 3. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
-        return PaginatedResponse.of(routinePage, routine -> toGroupRoutineInfo(routine, user, true));
+        // 4. 각 루틴에 대한 정보 매핑 및 페이지네이션 응답 생성
+        return PaginatedResponse.of(routinePage, routine -> toMyGroupRoutineInfo(routine, user, true, weekRecords));
     }
 
     @Override
@@ -229,6 +235,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .map(GroupRoutineMiddle::getRoutine)
                 .collect(Collectors.toList());
 
+
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
@@ -365,7 +372,7 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
         List<GroupRoutineResponseDto.RoutineInfo> routineInfos = routines.stream()
                 .map(r -> GroupRoutineResponseDto.RoutineInfo.builder()
                         .id(r.getId())
-                        .emojiId(r.getEmoji().getId())
+                        .emojiUrl(r.getEmoji().getEmojiUrl())
                         .name(r.getName())
                         .time(r.getTime())
                         .isCompleted(isJoined ? completedIds.contains(r.getId()) : null)
@@ -679,6 +686,62 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .peopleNums((int) peopleNums)
                 .percent(percent)
                 .dayOfWeek(dayOfWeek)
+                .isJoined(isJoined)
+                .build();
+    }
+
+    private GroupRoutineResponseDto.MyGroupRoutineInfo toMyGroupRoutineInfo(GroupRoutineList routine, User user, boolean includePercent,
+                                                                            List<GroupRoutineListDoneCheck> weekRecords) {
+        List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(routine);
+        int routineNums = middles.size();
+        long peopleNums = userInRoomRepository.countByGroupRoutineList(routine);
+
+        Double percent = null;
+        if (includePercent) {
+            List<Routine> routines = middles.stream()
+                    .map(GroupRoutineMiddle::getRoutine)
+                    .collect(Collectors.toList());
+
+            LocalDate today = LocalDate.now();
+            LocalDateTime startOfDay = today.atStartOfDay();
+            LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+            long doneCount = 0;
+            if (!routines.isEmpty()) {
+                List<RoutineRecord> records = routineRecordRepository.findRecordsByDateAndRoutines(user, startOfDay, endOfDay, routines);
+                doneCount = records.stream()
+                        .filter(RoutineRecord::isDoneCheck)
+                        .count();
+            }
+            percent = routineNums > 0 ? Math.round((double) doneCount * 1000 / routineNums) / 10.0 : 0.0;
+        }
+
+        boolean isJoined = routine.getUser().equals(user)
+                || userInRoomRepository.existsByGroupRoutineListAndUser(routine, user);
+
+        List<String> dayOfWeek = groupRoutinDaysRepository.findByGroupRoutineList(routine)
+                .stream()
+                .map(day -> day.getDayType().name())
+                .collect(Collectors.toList());
+
+        List<String> successDay = weekRecords == null ? Collections.emptyList() : weekRecords.stream()
+                .filter(record -> record.isDoneCheck() && record.getGroupRoutineList().equals(routine))
+                .map(record -> DayType.from(record.getCreatedDate().getDayOfWeek()).name())
+                .filter(dayOfWeek::contains)
+                .distinct()
+                .collect(Collectors.toList());
+
+        return GroupRoutineResponseDto.MyGroupRoutineInfo.builder()
+                .id(routine.getId())
+                .routineType(routine.getRoutineType())
+                .title(routine.getTitle())
+                .description(routine.getDescription())
+                .startTime(routine.getStartTime().format(TIME_FORMATTER))
+                .endTime(routine.getEndTime().format(TIME_FORMATTER))
+                .routineNums(routineNums)
+                .peopleNums((int) peopleNums)
+                .percent(percent)
+                .dayOfWeek(dayOfWeek)
+                .successDay(successDay)
                 .isJoined(isJoined)
                 .build();
     }

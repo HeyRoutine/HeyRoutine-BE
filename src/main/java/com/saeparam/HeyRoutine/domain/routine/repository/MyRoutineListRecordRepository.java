@@ -21,4 +21,11 @@ public interface MyRoutineListRecordRepository extends JpaRepository<MyRoutineLi
     List<MyRoutineListRecord> findByUserAndCreatedDateBetween(User user, LocalDateTime start, LocalDateTime end);
 
     void deleteByMyRoutineList(MyRoutineList myRoutineList);
+
+    /**
+     * 특정 사용자의 모든 개인 루틴 수행 기록을 삭제합니다.
+     *
+     * @param user 삭제 대상 사용자
+     */
+    void deleteAllByUser(User user);
 }

@@ -2,6 +2,20 @@ package com.saeparam.HeyRoutine.domain.user.service;
 
 
 import com.saeparam.HeyRoutine.domain.fcm.repository.FcmTokenRepository;
+import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.entity.GroupRoutineMiddle;
+import com.saeparam.HeyRoutine.domain.routine.entity.UserInRoom;
+import com.saeparam.HeyRoutine.domain.routine.entity.MyRoutineList;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListDoneCheckRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineListRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutineMiddleRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GroupRoutinDaysRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.GuestbookRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.MyRoutineListRecordRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.MyRoutineListRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRecordRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRepository;
+import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
@@ -28,6 +42,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +58,16 @@ public class UserService {
     private final WebClientBankUtil webClientBankUtil;
     private final ApplicationEventPublisher eventPublisher;
     private final FcmTokenRepository fcmTokenRepository;
+    private final MyRoutineListRepository myRoutineListRepository;
+    private final MyRoutineListRecordRepository myRoutineListRecordRepository;
+    private final RoutineRepository routineRepository;
+    private final RoutineRecordRepository routineRecordRepository;
+    private final GroupRoutineListRepository groupRoutineListRepository;
+    private final GroupRoutinDaysRepository groupRoutinDaysRepository;
+    private final GroupRoutineListDoneCheckRepository groupRoutineListDoneCheckRepository;
+    private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
+    private final UserInRoomRepository userInRoomRepository;
+    private final GuestbookRepository guestbookRepository;
 
 
     @Transactional
@@ -250,5 +275,67 @@ public class UserService {
         fcmTokenRepository.deleteAllByUser(user);
 
         return "로그아웃 되었습니다.";
+    }
+
+    /**
+     * 회원 탈퇴 처리
+     *
+     * <p>사용자가 탈퇴할 때 개인 루틴, 단체 루틴 참여 정보, 관련 기록 및 FCM 토큰 등을
+     * 모두 삭제한 뒤 최종적으로 사용자 정보를 제거합니다.</p>
+     *
+     * @param userId 탈퇴할 사용자 ID
+     */
+    @Transactional
+    public void deleteUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // Refresh Token 제거
+        if (redisTemplate.opsForValue().get("RT:" + user.getId()) != null) {
+            redisTemplate.delete("RT:" + user.getId());
+        }
+
+        // FCM 토큰 제거
+        fcmTokenRepository.deleteAllByUser(user);
+
+        // 개인 루틴 및 기록 삭제
+        myRoutineListRecordRepository.deleteAllByUser(user);
+        List<MyRoutineList> myRoutineLists = myRoutineListRepository.findAllByUser(user);
+        myRoutineListRepository.deleteAll(myRoutineLists);
+
+        // 사용자가 방장인 단체 루틴 삭제
+        List<GroupRoutineList> ownedGroups = groupRoutineListRepository.findAllByUser(user);
+        for (GroupRoutineList group : ownedGroups) {
+            guestbookRepository.deleteAllByGroupRoutineList(group);
+            groupRoutineListDoneCheckRepository.deleteAllByGroupRoutineList(group);
+            userInRoomRepository.deleteAllByGroupRoutineList(group);
+
+            List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(group);
+            for (GroupRoutineMiddle middle : middles) {
+                routineRecordRepository.deleteAllByRoutine(middle.getRoutine());
+                routineRepository.delete(middle.getRoutine());
+            }
+            groupRoutineMiddleRepository.deleteAllByRoutineList(group);
+            groupRoutinDaysRepository.deleteAllByGroupRoutineList(group);
+            groupRoutineListRepository.delete(group);
+        }
+
+        // 사용자가 참여중인 단체 루틴에서 제거
+        List<UserInRoom> joinedRooms = userInRoomRepository.findAllByUser(user);
+        for (UserInRoom userInRoom : joinedRooms) {
+            GroupRoutineList group = userInRoom.getGroupRoutineList();
+            groupRoutineListDoneCheckRepository.deleteByGroupRoutineListAndUser(group, user);
+            userInRoomRepository.delete(userInRoom);
+            group.decreaseUserCnt();
+        }
+        userInRoomRepository.deleteAllByUser(user);
+
+        // 사용자가 작성한 기타 데이터 정리
+        guestbookRepository.deleteAllByUser(user);
+        groupRoutineListDoneCheckRepository.deleteAllByUser(user);
+        routineRecordRepository.deleteAllByUser(user);
+
+        // 최종적으로 사용자 삭제
+        userRepository.delete(user);
     }
 }

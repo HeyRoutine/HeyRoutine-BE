@@ -178,8 +178,14 @@ public class UserController {
         return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "프로필 이미지 변경 성공"));
     }
 
-    // 탈퇴
-
-
-
+    /**
+     * 회원 탈퇴
+     */
+    @DeleteMapping("/delete")
+    @Operation(summary = "회원 탈퇴 API", description = "회원 탈퇴를 진행합니다.")
+    public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        userService.deleteUser(userId);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(null, "회원탈퇴 성공"));
+    }
 }

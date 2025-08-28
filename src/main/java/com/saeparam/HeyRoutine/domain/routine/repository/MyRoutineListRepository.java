@@ -33,4 +33,12 @@ public interface MyRoutineListRepository extends JpaRepository<MyRoutineList, Lo
     List<MyRoutineList> findAllByUserAndDay(@Param("user") User user, @Param("day") DayType day);
 
     Optional<MyRoutineList> findFirstByUserOrderByIdDesc(User user);
+
+    /**
+     * 특정 사용자가 소유한 모든 개인 루틴을 조회합니다.
+     *
+     * @param user 조회할 사용자
+     * @return 개인 루틴 목록
+     */
+    List<MyRoutineList> findAllByUser(User user);
 }

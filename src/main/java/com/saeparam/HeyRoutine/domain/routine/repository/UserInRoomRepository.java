@@ -53,4 +53,19 @@ public interface UserInRoomRepository extends JpaRepository<UserInRoom, Long> {
      */
     @Query("SELECT uir FROM UserInRoom uir JOIN FETCH uir.user WHERE uir.groupRoutineList = :groupRoutineList")
     List<UserInRoom> findByGroupRoutineList(@Param("groupRoutineList") GroupRoutineList groupRoutineList);
+
+    /**
+     * 특정 사용자가 참여중인 모든 단체 루틴 정보를 조회합니다.
+     *
+     * @param user 사용자
+     * @return 참여 정보 목록
+     */
+    List<UserInRoom> findAllByUser(User user);
+
+    /**
+     * 특정 사용자의 모든 단체 루틴 참여 정보를 삭제합니다.
+     *
+     * @param user 삭제할 사용자
+     */
+    void deleteAllByUser(User user);
 }

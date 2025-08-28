@@ -36,4 +36,12 @@ public interface GroupRoutineListRepository extends JpaRepository<GroupRoutineLi
                     "JOIN grl.userInRooms uir " +
                     "WHERE uir.user = :user")
     Page<GroupRoutineList> findAllByUser(@Param("user") User user, Pageable pageable);
+
+    /**
+     * 특정 사용자가 방장으로 있는 모든 단체 루틴을 조회합니다.
+     *
+     * @param user 방장 사용자
+     * @return 단체 루틴 목록
+     */
+    List<GroupRoutineList> findAllByUser(User user);
 }
