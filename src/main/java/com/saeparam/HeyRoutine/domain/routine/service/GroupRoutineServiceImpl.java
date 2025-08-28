@@ -235,6 +235,8 @@ public class GroupRoutineServiceImpl implements GroupRoutineService {
                 .map(GroupRoutineMiddle::getRoutine)
                 .collect(Collectors.toList());
 
+
+        LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
