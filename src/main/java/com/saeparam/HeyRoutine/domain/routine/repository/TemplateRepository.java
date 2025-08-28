@@ -10,4 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TemplateRepository extends JpaRepository<Template, Long> {
     Page<Template> findByCategory(Category category, Pageable pageable);
+
+
+    boolean existsByName(String routineName);
 }

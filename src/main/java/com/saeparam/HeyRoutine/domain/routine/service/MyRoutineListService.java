@@ -44,7 +44,8 @@ public class MyRoutineListService {
     private final RoutineRepository routineRepository;
     private final RoutineRecordRepository routineRecordRepository;
     private final MyRoutineListRecordRepository myRoutineListRecordRepository;
-
+    private final UserWeeklyPlanWithRoutineRepository userWeeklyPlanWithRoutineRepository;
+    private final TemplateRepository templateRepository;
 
 
 
@@ -114,6 +115,15 @@ public class MyRoutineListService {
             throw new UserHandler(ErrorStatus.USER_NOT_AUTHORITY);
         }
         for(RoutineRequestDto routineRequest:routineRequestDtoList) {
+            if(templateRepository.existsByName(routineRequest.getRoutineName())){
+                userWeeklyPlanWithRoutineRepository.save(UserWeeklyPlanWithRoutine.builder()
+                        .routineName(routineRequest.getRoutineName())
+                        .importance(3)
+                        .userId(user.getId().toString())
+                        .build()
+                );
+
+            }
             Emoji emoji = emojiRepository.findById(routineRequest.getEmojiId())
                     .orElseThrow(() -> new RoutineHandler(ErrorStatus.EMOJI_NOT_FOUND));
             Routine routine = routineRepository.save(RoutineRequestDto.toEntity(routineRequest, emoji));

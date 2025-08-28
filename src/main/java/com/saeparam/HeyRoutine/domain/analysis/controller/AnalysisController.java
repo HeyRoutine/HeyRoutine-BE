@@ -58,7 +58,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/daily")
-    @Operation(summary = "생활루틴 추천 조회 API", description = "생활루틴 추천을 AI가 추천해줍니다.")
+    @Operation(summary = "생활,소비루틴 추천 조회 API", description = "생활,소비루틴 추천을 AI가 추천해줍니다.")
     public ResponseEntity<?> dailyRoutineRecommend(@RequestHeader("Authorization") String token) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
