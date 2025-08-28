@@ -50,3 +50,4 @@ bank:
 
 ai:
   api-key: ${ai.api-key}
+  url: ${ai.url}

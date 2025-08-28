@@ -34,7 +34,8 @@ public class WebClientAiUtil {
     @Value("${ai.model:gemini-2.0-flash}")
     private String model;
 
-    private String aiUrl="http://3.34.153.50";
+    @Value("${ai.url}")
+    private String aiUrl;
 
     public ProductRecommendResponseDto recommendProduct(ProductRecommendRequestDto requestDto) {
         String url = aiUrl +":8081"+"/predict"; // 실제 AI 서버의 엔드포인트
