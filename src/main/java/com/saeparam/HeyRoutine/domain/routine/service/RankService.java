@@ -47,12 +47,11 @@ public class RankService {
 			Sort.by(Sort.Direction.DESC, "score"));
 		Page<University> page = universityRepository.findAll(pageRequest);
 
-		int startRank = page.getNumber() * page.getSize() + 1;
 		List<RankResponseDto.RankInfo> items = new ArrayList<>();
-		for (int i = 0; i < page.getContent().size(); i++) {
-			University u = page.getContent().get(i);
+		for (University u : page.getContent()) {
+			int rank = (int) universityRepository.countByScoreGreaterThan(u.getScore()) + 1;
 			items.add(RankResponseDto.RankInfo.builder()
-				.rank(startRank + i)
+				.rank(rank)
 				.name(u.getName())
 				.score(u.getScore())
 				.build());
@@ -84,11 +83,24 @@ public class RankService {
 		int toIndex = Math.min(fromIndex + pageable.getPageSize(), totalItems);
 		List<MajorRankProjection> pageList = fromIndex >= totalItems ? List.of() : rankingList.subList(fromIndex, toIndex);
 
+		// 전체 순위를 동점 처리하여 계산
+		List<Integer> ranks = new ArrayList<>();
+		long prevScore = Long.MIN_VALUE;
+		int rankCounter = 0;
+		for (int i = 0; i < rankingList.size(); i++) {
+			long score = rankingList.get(i).getScore();
+			if (score != prevScore) {
+				rankCounter = i + 1;
+				prevScore = score;
+			}
+			ranks.add(rankCounter);
+		}
+
 		List<RankResponseDto.RankInfo> items = new ArrayList<>();
 		for (int i = 0; i < pageList.size(); i++) {
 			MajorRankProjection proj = pageList.get(i);
 			items.add(RankResponseDto.RankInfo.builder()
-				.rank(fromIndex + i + 1)
+				.rank(ranks.get(fromIndex + i))
 				.name(proj.getMajorName())
 				.score(proj.getScore().intValue())
 				.build());
@@ -99,7 +111,7 @@ public class RankService {
 		for (int i = 0; i < rankingList.size(); i++) {
 			MajorRankProjection proj = rankingList.get(i);
 			if (proj.getMajorId().equals(user.getMajor().getId())) {
-				myRank = i + 1;
+				myRank = ranks.get(i);
 				myScore = proj.getScore().intValue();
 				break;
 			}
