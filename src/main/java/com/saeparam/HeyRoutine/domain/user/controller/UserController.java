@@ -123,10 +123,11 @@ public class UserController {
     /**
      * 학과 검색
      */
-    @GetMapping("/major")
+    @GetMapping("/major/{universityId}")
     @Operation(summary = "학과 검색 조회", description = "학과를 검색합니다.")
-    public ResponseEntity<?> getMajors(@RequestParam("keyword") String keyword) {
-        List<SearchInfoDto> result = userService.searchMajors(keyword);
+    public ResponseEntity<?> getMajors(@PathVariable("universityId") Long universityId,
+        @RequestParam("keyword") String keyword) {
+        List<SearchInfoDto> result = userService.searchMajors(universityId, keyword);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result, "학과 검색 성공"));
     }
 

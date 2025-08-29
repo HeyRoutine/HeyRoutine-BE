@@ -34,4 +34,8 @@ public class University {
 
 	@Column(nullable = false)
 	private int score;
+
+	public void increaseScore() {
+		this.score += 1;
+	}
 }

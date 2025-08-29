@@ -38,4 +38,8 @@ public class MajorMiddle {
 
 	@Column(nullable = false)
 	private Integer score;
+
+	public void increaseScore() {
+		this.score = this.score == null ? 1 : this.score + 1;
+	}
 }

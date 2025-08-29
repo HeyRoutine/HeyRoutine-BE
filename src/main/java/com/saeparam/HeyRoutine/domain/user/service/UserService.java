@@ -20,8 +20,10 @@ import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
 import com.saeparam.HeyRoutine.domain.user.entity.Major;
+import com.saeparam.HeyRoutine.domain.user.entity.MajorMiddle;
 import com.saeparam.HeyRoutine.domain.user.entity.University;
 import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
+import com.saeparam.HeyRoutine.domain.user.repository.MajorMiddleRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.MajorRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UniversityRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UserSurveyFlagsRepository;
@@ -80,6 +82,7 @@ public class UserService {
     private final GuestbookRepository guestbookRepository;
     private final UniversityRepository universityRepository;
     private final MajorRepository majorRepository;
+    private final MajorMiddleRepository majorMiddleRepository;
 
 
     @Transactional
@@ -125,14 +128,21 @@ public class UserService {
     }
 
     /**
-     * Search majors by keyword.
+     * 특정 대학교 내 학과 검색
      *
-     * @param keyword 검색할 키워드
+     * @param universityId 대학교 ID
+     * @param keyword      검색할 학과명 키워드
      * @return 검색 결과 리스트
      */
     @Transactional(readOnly = true)
-    public List<SearchInfoDto> searchMajors(String keyword) {
-        return majorRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
+    public List<SearchInfoDto> searchMajors(Long universityId, String keyword) {
+        University university = universityRepository.findById(universityId)
+            .orElseThrow(() -> new UserHandler(ErrorStatus.UNIVERSITY_NOT_FOUND));
+
+        return majorMiddleRepository
+            .findTop10ByUniversityAndMajor_NameContainingIgnoreCase(university, keyword)
+            .stream()
+            .map(MajorMiddle::getMajor)
             .map(SearchInfoDto::fromMajor)
             .toList();
     }
@@ -149,6 +159,15 @@ public class UserService {
             .orElseThrow(() -> new UserHandler(ErrorStatus.UNIVERSITY_NOT_FOUND));
         Major major = majorRepository.findById(signUpDto.getMajorId())
             .orElseThrow(() -> new UserHandler(ErrorStatus.MAJOR_NOT_FOUND));
+
+        majorMiddleRepository.findByUniversityAndMajor(university, major)
+            .orElseGet(() -> majorMiddleRepository.save(
+                MajorMiddle.builder()
+                    .university(university)
+                    .major(major)
+                    .score(0)
+                    .build()
+            ));
 
         // 회원가입 성공 처리
         User user = signUpDto.toEntity(encodedPassword, university, major);
