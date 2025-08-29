@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface UserSurveyFlagsRepository extends JpaRepository<UserSurveyFlags, Long> {
 
 
+    Optional<UserSurveyFlags> findByUserId(String string);
 }

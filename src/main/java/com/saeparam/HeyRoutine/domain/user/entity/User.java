@@ -27,6 +27,14 @@ public class User extends BaseTime implements UserDetails {
   @Column(name = "user_id", updatable = false, unique = true, nullable = false, columnDefinition = "BINARY(16)")
   private UUID id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "university_id")
+  private University university;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "major_id")
+  private Major major;
+
   @Column(nullable = false)
   private String email;
 

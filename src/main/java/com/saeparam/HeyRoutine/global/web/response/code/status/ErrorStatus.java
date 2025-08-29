@@ -38,6 +38,8 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_NOT_AUTHORITY(HttpStatus.UNAUTHORIZED, "USER4006", "권한이 없습니다"),
     USER_INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "USER4003", "로그인 정보가 일치하지 않습니다."),
     USER_NOT_MATCH(HttpStatus.UNAUTHORIZED, "USER4005", "접근 권한이 없습니다."),
+    UNIVERSITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4007", "해당 대학교가 없습니다."),
+    MAJOR_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4008", "해당 학과가 없습니다."),
 
     // password 응답
     PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "PASSWORD4000", "비밀번호가 맞지 않습니다."),

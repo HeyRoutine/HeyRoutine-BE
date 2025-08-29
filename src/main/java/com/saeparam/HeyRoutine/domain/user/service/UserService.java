@@ -18,7 +18,12 @@ import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
+import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
+import com.saeparam.HeyRoutine.domain.user.entity.Major;
+import com.saeparam.HeyRoutine.domain.user.entity.University;
 import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
+import com.saeparam.HeyRoutine.domain.user.repository.MajorRepository;
+import com.saeparam.HeyRoutine.domain.user.repository.UniversityRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UserSurveyFlagsRepository;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
@@ -46,6 +51,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -72,6 +78,8 @@ public class UserService {
     private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
     private final UserInRoomRepository userInRoomRepository;
     private final GuestbookRepository guestbookRepository;
+    private final UniversityRepository universityRepository;
+    private final MajorRepository majorRepository;
 
 
     @Transactional
@@ -103,16 +111,49 @@ public class UserService {
         }
     }
 
+    /**
+     * Search universities by keyword.
+     *
+     * @param keyword 검색할 키워드
+     * @return 검색 결과 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<SearchInfoDto> searchUniversities(String keyword) {
+        return universityRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
+            .map(SearchInfoDto::fromUniversity)
+            .toList();
+    }
+
+    /**
+     * Search majors by keyword.
+     *
+     * @param keyword 검색할 키워드
+     * @return 검색 결과 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<SearchInfoDto> searchMajors(String keyword) {
+        return majorRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
+            .map(SearchInfoDto::fromMajor)
+            .toList();
+    }
+
     @Transactional
     public UserDto signUp(SignUpDto signUpDto) {
         log.info("[signUp] 회원가입 요청: username = {}", signUpDto.getEmail());
         checkEmailDuplicate(signUpDto.getEmail());
         checknicknameDuplicate(signUpDto.getNickname());
+
         // Password 암호화
         String encodedPassword = passwordEncoder.encode(signUpDto.getPassword());
+        University university = universityRepository.findById(signUpDto.getUniversityId())
+            .orElseThrow(() -> new UserHandler(ErrorStatus.UNIVERSITY_NOT_FOUND));
+        Major major = majorRepository.findById(signUpDto.getMajorId())
+            .orElseThrow(() -> new UserHandler(ErrorStatus.MAJOR_NOT_FOUND));
 
         // 회원가입 성공 처리
-        UserDto userDto = UserDto.toDto(userRepository.save(signUpDto.toEntity(signUpDto, encodedPassword)));
+        User user = signUpDto.toEntity(encodedPassword, university, major);
+        user.setAccountCertificationStatus(false); // account_certification_status를 false로 설정
+        UserDto userDto = UserDto.toDto(userRepository.save(user));
         eventPublisher.publishEvent(new UserSignedUpEvent(signUpDto.getEmail()));
 
         return userDto;
@@ -289,46 +330,37 @@ public class UserService {
         UserSurveyFlags.UserSurveyFlagsBuilder builder = UserSurveyFlags.builder()
                 .userId(user.getId().toString());
 
+        List<Boolean> surveyList = surveyRequestDto.getSurveyList();
 
-        // 4. 리스트의 값을 각 필드에 매핑
-        builder.q0(surveyRequestDto.getSurveyList().get(0));
-        builder.q1(surveyRequestDto.getSurveyList().get(1));
-        builder.q2(surveyRequestDto.getSurveyList().get(2));
-        builder.q3(surveyRequestDto.getSurveyList().get(3));
-        builder.q4(surveyRequestDto.getSurveyList().get(4));
-        builder.q5(surveyRequestDto.getSurveyList().get(5));
-        builder.q6(surveyRequestDto.getSurveyList().get(6));
-        builder.q7(surveyRequestDto.getSurveyList().get(7));
-        builder.q8(surveyRequestDto.getSurveyList().get(8));
-        builder.q9(surveyRequestDto.getSurveyList().get(9));
-        builder.q10(surveyRequestDto.getSurveyList().get(10));
-        builder.q11(surveyRequestDto.getSurveyList().get(11));
-        builder.q12(surveyRequestDto.getSurveyList().get(12));
-        builder.q13(surveyRequestDto.getSurveyList().get(13));
-        builder.q14(surveyRequestDto.getSurveyList().get(14));
-        builder.q15(surveyRequestDto.getSurveyList().get(15));
-        builder.q16(surveyRequestDto.getSurveyList().get(16));
-        builder.q17(surveyRequestDto.getSurveyList().get(17));
-        builder.q18(surveyRequestDto.getSurveyList().get(18));
-        builder.q19(surveyRequestDto.getSurveyList().get(19));
-        builder.q20(surveyRequestDto.getSurveyList().get(20));
-        builder.q21(surveyRequestDto.getSurveyList().get(21));
-        builder.q22(surveyRequestDto.getSurveyList().get(22));
-        builder.q23(surveyRequestDto.getSurveyList().get(23));
-        builder.q24(surveyRequestDto.getSurveyList().get(24));
-        builder.q25(surveyRequestDto.getSurveyList().get(25));
-        builder.q26(surveyRequestDto.getSurveyList().get(26));
-        builder.q27(surveyRequestDto.getSurveyList().get(27));
-        builder.q28(surveyRequestDto.getSurveyList().get(28));
-        builder.q29(surveyRequestDto.getSurveyList().get(29));
-        builder.q30(surveyRequestDto.getSurveyList().get(30));
-        builder.q31(surveyRequestDto.getSurveyList().get(31));
-        builder.q32(surveyRequestDto.getSurveyList().get(32));
 
-        // 5. 빌드된 엔티티를 저장
-        UserSurveyFlags userSurveyFlags = builder.build();
-        userSurveyFlagsRepository.save(userSurveyFlags);
+        // 3. userId로 기존 설문 데이터가 있는지 조회
+        Optional<UserSurveyFlags> existingSurvey = userSurveyFlagsRepository.findByUserId(user.getId().toString());
+
+        if (existingSurvey.isPresent()) {
+            // 4-1. 데이터가 이미 존재하면 -> 업데이트 (더티 체킹 활용)
+            UserSurveyFlags surveyToUpdate = existingSurvey.get();
+            surveyToUpdate.updateFlags(surveyList);
+            // @Transactional에 의해 메소드 종료 시 자동으로 UPDATE 쿼리 실행됨
+        } else {
+            // 4-2. 데이터가 없으면 -> 새로 생성 및 저장
+            UserSurveyFlags newSurvey = UserSurveyFlags.builder()
+                    .userId(user.getId().toString())
+                    .q0(surveyList.get(0)).q1(surveyList.get(1)).q2(surveyList.get(2))
+                    .q3(surveyList.get(3)).q4(surveyList.get(4)).q5(surveyList.get(5))
+                    .q6(surveyList.get(6)).q7(surveyList.get(7)).q8(surveyList.get(8))
+                    .q9(surveyList.get(9)).q10(surveyList.get(10)).q11(surveyList.get(11))
+                    .q12(surveyList.get(12)).q13(surveyList.get(13)).q14(surveyList.get(14))
+                    .q15(surveyList.get(15)).q16(surveyList.get(16)).q17(surveyList.get(17))
+                    .q18(surveyList.get(18)).q19(surveyList.get(19)).q20(surveyList.get(20))
+                    .q21(surveyList.get(21)).q22(surveyList.get(22)).q23(surveyList.get(23))
+                    .q24(surveyList.get(24)).q25(surveyList.get(25)).q26(surveyList.get(26))
+                    .q27(surveyList.get(27)).q28(surveyList.get(28)).q29(surveyList.get(29))
+                    .q30(surveyList.get(30)).q31(surveyList.get(31)).q32(surveyList.get(32))
+                    .build();
+            userSurveyFlagsRepository.save(newSurvey);
+        }
     }
+
 
     /**
      * 회원 탈퇴 처리
