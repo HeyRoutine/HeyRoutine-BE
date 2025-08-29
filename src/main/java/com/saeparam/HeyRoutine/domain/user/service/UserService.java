@@ -205,6 +205,7 @@ public class UserService {
         return jwtToken;
     }
 
+    @Transactional(readOnly = true)
     public MyInfoResponseDto myInfo(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
