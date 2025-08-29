@@ -48,7 +48,7 @@ public class FinanceServiceImpl implements FinanceService{
      */
     @Override
     @Transactional
-    public void sendAccountCode(UUID userId, String accountNo) {
+    public String sendAccountCode(UUID userId, String accountNo) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -77,6 +77,8 @@ public class FinanceServiceImpl implements FinanceService{
 
         // FCM으로 인증번호 전송
         fcmService.sendAccountAuthCode(user.getId(), authCode);
+
+        return authCode;
     }
 
     /**

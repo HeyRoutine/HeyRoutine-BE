@@ -14,7 +14,7 @@ public interface FinanceService {
      * @param userId    사용자 ID
      * @param accountNo 계좌번호
      */
-    void sendAccountCode(UUID userId, String accountNo);
+    String sendAccountCode(UUID userId, String accountNo);
 
     /**
      * 사용자가 입력한 인증번호를 검증한다.
