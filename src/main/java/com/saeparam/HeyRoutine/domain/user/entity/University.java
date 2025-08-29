@@ -33,5 +33,5 @@ public class University {
 	private String imageUrl;
 
 	@Column(nullable = false)
-	private Integer score;
+	private int score;
 }
