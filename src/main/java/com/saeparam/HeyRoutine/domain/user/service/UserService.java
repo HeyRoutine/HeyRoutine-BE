@@ -199,6 +199,8 @@ public class UserService {
 
         return MyInfoResponseDto.builder()
                 .profileImage(user.getProfileImage())
+                .university(user.getUniversity().getName())
+                .major(user.getMajor().getName())
                 .nickname(user.getNickname())
                 .bankAccount(user.getBankAccount())
                 .point(user.getPoint())
