@@ -128,21 +128,14 @@ public class UserService {
     }
 
     /**
-     * 특정 대학교 내 학과 검색
+     * Search majors by keyword.
      *
-     * @param universityId 대학교 ID
-     * @param keyword      검색할 학과명 키워드
+     * @param keyword 검색할 키워드
      * @return 검색 결과 리스트
      */
     @Transactional(readOnly = true)
-    public List<SearchInfoDto> searchMajors(Long universityId, String keyword) {
-        University university = universityRepository.findById(universityId)
-            .orElseThrow(() -> new UserHandler(ErrorStatus.UNIVERSITY_NOT_FOUND));
-
-        return majorMiddleRepository
-            .findTop10ByUniversityAndMajor_NameContainingIgnoreCase(university, keyword)
-            .stream()
-            .map(MajorMiddle::getMajor)
+    public List<SearchInfoDto> searchMajors(String keyword) {
+        return majorRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
             .map(SearchInfoDto::fromMajor)
             .toList();
     }
