@@ -12,6 +12,9 @@ import com.saeparam.HeyRoutine.domain.routine.entity.*;
 import com.saeparam.HeyRoutine.domain.routine.enums.DayType;
 import com.saeparam.HeyRoutine.domain.routine.repository.*;
 
+import com.saeparam.HeyRoutine.domain.user.repository.MajorMiddleRepository;
+import com.saeparam.HeyRoutine.domain.user.entity.MajorMiddle;
+import com.saeparam.HeyRoutine.domain.user.entity.University;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 
@@ -47,6 +50,8 @@ public class MyRoutineListService {
     private final MyRoutineListRecordRepository myRoutineListRecordRepository;
     private final UserWeeklyPlanWithRoutineRepository userWeeklyPlanWithRoutineRepository;
     private final TemplateRepository templateRepository;
+    private final MajorMiddleRepository majorMiddleRepository;
+
 
 
 
@@ -293,6 +298,14 @@ public class MyRoutineListService {
                 newListRecord.setModifiedDate(startOfDay);
 
                 myRoutineListRecordRepository.save(newListRecord);
+
+                University university = user.getUniversity();
+                if (university != null && user.getMajor() != null) {
+                    university.increaseScore();
+                    majorMiddleRepository
+                        .findByUniversityAndMajor(university, user.getMajor())
+                        .ifPresent(MajorMiddle::increaseScore);
+                }
             }
         }
     }

@@ -1,7 +1,9 @@
 package com.saeparam.HeyRoutine.domain.routine.controller;
 
 import com.saeparam.HeyRoutine.domain.routine.dto.response.GroupRoutineResponseDto;
+import com.saeparam.HeyRoutine.domain.routine.dto.response.RankResponseDto;
 import com.saeparam.HeyRoutine.domain.routine.service.GroupRoutineService;
+import com.saeparam.HeyRoutine.domain.routine.service.RankService;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -31,6 +34,7 @@ public class HomeController {
 
     private final GroupRoutineService groupRoutineService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RankService rankService;
 
     /**
      * 내가 가입한 단체 루틴 목록을 조회합니다.
@@ -51,5 +55,20 @@ public class HomeController {
             return ResponseEntity.ok(ApiResponse.noContent());
         }
         return ResponseEntity.ok(ApiResponse.onSuccess(response));
+    }
+
+    /**
+     * 학교 혹은 학과 랭킹을 조회합니다.
+     */
+    @GetMapping("/rank")
+    @Operation(summary = "랭킹 조회 API", description = "학교 또는 학과 랭킹을 조회합니다.")
+    public ResponseEntity<ApiResponse<RankResponseDto.RankPage>> getRanking(
+        @RequestHeader("Authorization") String token,
+        @RequestParam("type") String type,
+        @PageableDefault(page = 0, size = 20) Pageable pageable) {
+        UUID uuid = jwtTokenProvider.getUserId(token.substring(7));
+        RankResponseDto.RankPage response = rankService.getRanking(uuid, type, pageable);
+        String message = "university".equalsIgnoreCase(type) ? "학교 랭킹 조회 성공" : "학과 랭킹 조회 성공";
+        return ResponseEntity.ok(ApiResponse.onSuccess(response, message));
     }
 }

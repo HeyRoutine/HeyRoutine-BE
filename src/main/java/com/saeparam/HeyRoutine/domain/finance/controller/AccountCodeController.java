@@ -2,6 +2,7 @@ package com.saeparam.HeyRoutine.domain.finance.controller;
 
 import com.saeparam.HeyRoutine.domain.finance.dto.request.AccountCodeRequestDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.request.AccountCodeVerifyRequestDto;
+import com.saeparam.HeyRoutine.domain.finance.service.FinanceService;
 import com.saeparam.HeyRoutine.domain.finance.service.FinanceServiceImpl;
 import com.saeparam.HeyRoutine.global.security.jwt.JwtTokenProvider;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
@@ -24,7 +25,7 @@ import java.util.UUID;
 public class AccountCodeController {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final FinanceServiceImpl financeService;
+    private final FinanceService financeService;
 
     @PostMapping
     @Operation(summary = "계좌 인증번호 전송 API", description = "1원 송금 후 인증번호를 FCM으로 전송합니다.")
@@ -32,8 +33,8 @@ public class AccountCodeController {
                                              @RequestBody AccountCodeRequestDto requestDto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
         try {
-            financeService.sendAccountCode(userId, requestDto.getAccount());
-            return ResponseEntity.ok(ApiResponse.onSuccess("해당 계좌는 유효합니다."));
+            String code = financeService.sendAccountCode(userId, requestDto.getAccount());
+            return ResponseEntity.ok(ApiResponse.onSuccess(code, "해당 계좌는 유효합니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.onFailure("COMMON404", "유효하지 않은 계좌번호입니다."));
