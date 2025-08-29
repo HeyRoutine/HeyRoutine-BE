@@ -33,7 +33,7 @@ public class UserController {
      */
 
     @PostMapping("/survey")
-    @Operation(summary = "내 정보 확인 API", description = "내 닉네임을 확인합니다.")
+    @Operation(summary = "설문 저장 API", description = "설문을 확인합니다.")
     public ResponseEntity<?> survey(@RequestHeader("Authorization") String token, @RequestBody SurveyRequestDto surveyRequestDto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
         userService.survey(userId,surveyRequestDto);
