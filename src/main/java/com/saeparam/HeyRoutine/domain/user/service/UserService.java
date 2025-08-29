@@ -142,6 +142,7 @@ public class UserService {
         log.info("[signUp] 회원가입 요청: username = {}", signUpDto.getEmail());
         checkEmailDuplicate(signUpDto.getEmail());
         checknicknameDuplicate(signUpDto.getNickname());
+
         // Password 암호화
         String encodedPassword = passwordEncoder.encode(signUpDto.getPassword());
         University university = universityRepository.findById(signUpDto.getUniversityId())
@@ -150,7 +151,9 @@ public class UserService {
             .orElseThrow(() -> new UserHandler(ErrorStatus.MAJOR_NOT_FOUND));
 
         // 회원가입 성공 처리
-        UserDto userDto = UserDto.toDto(userRepository.save(signUpDto.toEntity(encodedPassword, university, major)));
+        User user = signUpDto.toEntity(encodedPassword, university, major);
+        user.setAccountCertificationStatus(false); // account_certification_status를 false로 설정
+        UserDto userDto = UserDto.toDto(userRepository.save(user));
         eventPublisher.publishEvent(new UserSignedUpEvent(signUpDto.getEmail()));
 
         return userDto;
