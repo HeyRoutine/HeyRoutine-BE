@@ -19,6 +19,8 @@ import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
+import com.saeparam.HeyRoutine.domain.user.entity.Major;
+import com.saeparam.HeyRoutine.domain.user.entity.University;
 import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
 import com.saeparam.HeyRoutine.domain.user.repository.MajorRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UniversityRepository;
@@ -142,9 +144,13 @@ public class UserService {
         checknicknameDuplicate(signUpDto.getNickname());
         // Password 암호화
         String encodedPassword = passwordEncoder.encode(signUpDto.getPassword());
+        University university = universityRepository.findById(signUpDto.getUniversityId())
+            .orElseThrow(() -> new UserHandler(ErrorStatus.UNIVERSITY_NOT_FOUND));
+        Major major = majorRepository.findById(signUpDto.getMajorId())
+            .orElseThrow(() -> new UserHandler(ErrorStatus.MAJOR_NOT_FOUND));
 
         // 회원가입 성공 처리
-        UserDto userDto = UserDto.toDto(userRepository.save(signUpDto.toEntity(signUpDto, encodedPassword)));
+        UserDto userDto = UserDto.toDto(userRepository.save(signUpDto.toEntity(encodedPassword, university, major)));
         eventPublisher.publishEvent(new UserSignedUpEvent(signUpDto.getEmail()));
 
         return userDto;
