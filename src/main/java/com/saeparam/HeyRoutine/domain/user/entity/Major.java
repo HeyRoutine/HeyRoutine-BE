@@ -24,10 +24,6 @@ public class Major {
 	@Column(name = "major_id", updatable = false, unique = true, nullable = false)
 	private long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "university_id", nullable = false)
-	private University university;
-
 	@Column(nullable = false, length = 50)
 	private String name;
 

@@ -28,7 +28,11 @@ public class User extends BaseTime implements UserDetails {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "major_id", foreignKey = @ForeignKey(name = "fk_user_major"))
+  @JoinColumn(name = "university_id")
+  private University university;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "major_id")
   private Major major;
 
   @Column(nullable = false)

@@ -21,7 +21,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class University {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "university_id", updatable = false, unique = true, nullable = false)
@@ -35,7 +34,4 @@ public class University {
 
 	@Column(nullable = false)
 	private Integer score;
-
-	@OneToMany(mappedBy = "university", fetch = FetchType.LAZY)
-	private List<Major> majors = new ArrayList<>();
 }
