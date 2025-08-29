@@ -3,6 +3,7 @@ package com.saeparam.HeyRoutine.domain.user.controller;
 
 
 import com.saeparam.HeyRoutine.domain.user.dto.request.*;
+import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
 import com.saeparam.HeyRoutine.global.web.response.ApiResponse;
 import com.saeparam.HeyRoutine.domain.user.dto.JwtToken;
 import com.saeparam.HeyRoutine.domain.user.dto.response.UserDto;
@@ -107,6 +108,26 @@ public class UserController {
         // 회원가입 처리
         UserDto savedMemberDto = userService.signUp(signUpDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(savedMemberDto));
+    }
+
+    /**
+     * 대학교 검색
+     */
+    @GetMapping("/university")
+    @Operation(summary = "대학교 검색 조회", description = "대학교를 검색합니다.")
+    public ResponseEntity<?> getUniversities(@RequestParam("keyword") String keyword) {
+        List<SearchInfoDto> result = userService.searchUniversities(keyword);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result, "대학교 검색 성공"));
+    }
+
+    /**
+     * 학과 검색
+     */
+    @GetMapping("/major")
+    @Operation(summary = "학과 검색 조회", description = "학과를 검색합니다.")
+    public ResponseEntity<?> getMajors(@RequestParam("keyword") String keyword) {
+        List<SearchInfoDto> result = userService.searchMajors(keyword);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result, "학과 검색 성공"));
     }
 
     /**
