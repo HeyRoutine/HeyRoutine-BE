@@ -33,5 +33,9 @@ public class University {
 	private String imageUrl;
 
 	@Column(nullable = false)
-	private Integer score;
+	private int score;
+
+	public void increaseScore() {
+		this.score += 1;
+	}
 }

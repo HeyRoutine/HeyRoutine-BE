@@ -20,8 +20,10 @@ import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
 import com.saeparam.HeyRoutine.domain.user.entity.Major;
+import com.saeparam.HeyRoutine.domain.user.entity.MajorMiddle;
 import com.saeparam.HeyRoutine.domain.user.entity.University;
 import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
+import com.saeparam.HeyRoutine.domain.user.repository.MajorMiddleRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.MajorRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UniversityRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UserSurveyFlagsRepository;
@@ -80,6 +82,7 @@ public class UserService {
     private final GuestbookRepository guestbookRepository;
     private final UniversityRepository universityRepository;
     private final MajorRepository majorRepository;
+    private final MajorMiddleRepository majorMiddleRepository;
 
 
     @Transactional
@@ -150,6 +153,15 @@ public class UserService {
         Major major = majorRepository.findById(signUpDto.getMajorId())
             .orElseThrow(() -> new UserHandler(ErrorStatus.MAJOR_NOT_FOUND));
 
+        majorMiddleRepository.findByUniversityAndMajor(university, major)
+            .orElseGet(() -> majorMiddleRepository.save(
+                MajorMiddle.builder()
+                    .university(university)
+                    .major(major)
+                    .score(0)
+                    .build()
+            ));
+
         // 회원가입 성공 처리
         User user = signUpDto.toEntity(encodedPassword, university, major);
         user.setAccountCertificationStatus(false); // account_certification_status를 false로 설정
@@ -193,12 +205,15 @@ public class UserService {
         return jwtToken;
     }
 
+    @Transactional(readOnly = true)
     public MyInfoResponseDto myInfo(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         return MyInfoResponseDto.builder()
                 .profileImage(user.getProfileImage())
+                .university(user.getUniversity().getName())
+                .major(user.getMajor().getName())
                 .nickname(user.getNickname())
                 .bankAccount(user.getBankAccount())
                 .point(user.getPoint())

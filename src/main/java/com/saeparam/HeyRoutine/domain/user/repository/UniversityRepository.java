@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface UniversityRepository extends JpaRepository<University, Long> {
 	List<University> findTop10ByNameContainingIgnoreCase(String keyword);
+
+	long countByScoreGreaterThan(int score);
 }
