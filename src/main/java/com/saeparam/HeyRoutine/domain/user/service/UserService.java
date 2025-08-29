@@ -18,7 +18,10 @@ import com.saeparam.HeyRoutine.domain.routine.repository.RoutineRepository;
 import com.saeparam.HeyRoutine.domain.routine.repository.UserInRoomRepository;
 import com.saeparam.HeyRoutine.domain.user.dto.request.SurveyRequestDto;
 import com.saeparam.HeyRoutine.domain.user.dto.response.MyInfoResponseDto;
+import com.saeparam.HeyRoutine.domain.user.dto.response.SearchInfoDto;
 import com.saeparam.HeyRoutine.domain.user.entity.UserSurveyFlags;
+import com.saeparam.HeyRoutine.domain.user.repository.MajorRepository;
+import com.saeparam.HeyRoutine.domain.user.repository.UniversityRepository;
 import com.saeparam.HeyRoutine.domain.user.repository.UserSurveyFlagsRepository;
 import com.saeparam.HeyRoutine.domain.user.service.event.UserSignedUpEvent;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
@@ -73,6 +76,8 @@ public class UserService {
     private final GroupRoutineMiddleRepository groupRoutineMiddleRepository;
     private final UserInRoomRepository userInRoomRepository;
     private final GuestbookRepository guestbookRepository;
+    private final UniversityRepository universityRepository;
+    private final MajorRepository majorRepository;
 
 
     @Transactional
@@ -102,6 +107,32 @@ public class UserService {
             log.error("[signIn] 로그인 실패: username = {}, 오류 = {}", username, e.getMessage());
             throw new UserHandler(ErrorStatus._INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * Search universities by keyword.
+     *
+     * @param keyword 검색할 키워드
+     * @return 검색 결과 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<SearchInfoDto> searchUniversities(String keyword) {
+        return universityRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
+            .map(SearchInfoDto::fromUniversity)
+            .toList();
+    }
+
+    /**
+     * Search majors by keyword.
+     *
+     * @param keyword 검색할 키워드
+     * @return 검색 결과 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<SearchInfoDto> searchMajors(String keyword) {
+        return majorRepository.findTop10ByNameContainingIgnoreCase(keyword).stream()
+            .map(SearchInfoDto::fromMajor)
+            .toList();
     }
 
     @Transactional
