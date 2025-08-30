@@ -3,6 +3,7 @@ HeyRoutine 백엔드 Repository
 <br><br>
 # 실행방법
 git clone https://github.com/HeyRoutine/HeyRoutine-BE.git
+<br>
 ./gradlew bootRun
 <br><br>
 ## Git Flow
