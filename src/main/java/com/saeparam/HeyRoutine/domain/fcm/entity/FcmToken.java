@@ -26,7 +26,11 @@ public class FcmToken extends BaseTime {
     @Column(nullable = false)
     private String token;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public void updateToken(String newToken) {
+        this.token = newToken;
+    }
 }

@@ -27,7 +27,6 @@ public class FcmController {
     @Operation(summary = "fcm 토큰 저장API", description = "해당유저의 fcm토큰을 저장합니다")
     public ResponseEntity<?> accountVerification(@RequestHeader("Authorization") String token, @RequestBody FcmTokenRequestDto fcmTokenRequestDto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
-
         return ResponseEntity.ok().body(ApiResponse.onSuccess(fcmTokenService.saveToken(userId,fcmTokenRequestDto)));
 
     }
