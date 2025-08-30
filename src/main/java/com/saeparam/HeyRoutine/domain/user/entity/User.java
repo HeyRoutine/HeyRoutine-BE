@@ -109,6 +109,14 @@ public class User extends BaseTime implements UserDetails {
     this.point=this.point-price;
   }
 
+  // 유저의 포인트 적립
+  public void addPoint(Long value) {
+    if (this.point == null) {
+      this.point = value;
+    } else {
+      this.point = this.point + value;
+    }
+  }
 
 
   @Override

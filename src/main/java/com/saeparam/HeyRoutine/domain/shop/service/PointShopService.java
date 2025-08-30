@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.shop.service;
 
 
+import com.saeparam.HeyRoutine.domain.finance.dto.response.AccountBalanceResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.request.ShopAccountTransferRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
@@ -96,7 +97,7 @@ public class PointShopService {
 
 
     @Transactional
-    public String accountTransfer(UUID userId, ShopAccountTransferRequestDto shopAccountTransferRequestDto) {
+    public Long accountTransfer(UUID userId, ShopAccountTransferRequestDto shopAccountTransferRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
         if (!user.getBankAccount().equals(shopAccountTransferRequestDto.getAccount())){
@@ -115,6 +116,10 @@ public class PointShopService {
                 roundedAmount,
                 "헤이루틴 포인트적립"
         ).block();
-        return "입금 되었습니다.";
+        AccountBalanceResponseDto balanceResponse = webClientBankUtil
+            .inquireAccountBalance(user.getUserKey(), user.getBankAccount())
+            .block();
+
+        return Long.parseLong(balanceResponse.getRec().getAccountBalance());
     }
 }

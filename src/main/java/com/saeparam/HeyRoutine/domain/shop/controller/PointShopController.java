@@ -75,11 +75,11 @@ public class PointShopController {
     }
 
     @PostMapping("/account-transfer")
-    @Operation(summary = "물건 결제하기 API", description = "물건을 결제합니다.")
+    @Operation(summary = "포인트 전환 API", description = "포인트를 전환합니다.")
     public ResponseEntity<?> accountTransfer(@RequestHeader("Authorization") String token, @RequestBody ShopAccountTransferRequestDto shopAccountTransferRequestDto) {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
-        String result=pointShopService.accountTransfer(userId,shopAccountTransferRequestDto);
+        Long result=pointShopService.accountTransfer(userId,shopAccountTransferRequestDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 
