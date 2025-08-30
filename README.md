@@ -4,6 +4,8 @@ HeyRoutine 백엔드 Repository
 # 실행방법
 git clone https://github.com/HeyRoutine/HeyRoutine-BE.git
 <br>
+cd HeyRoutine-BE
+<br>
 ./gradlew bootRun
 <br>
 inteliJ 실행시 SpringBoot 실행
@@ -15,7 +17,9 @@ SDK : corretto17<br>
 DB : Mysql,redis<br>
 <br>
 <br>
+실행 전 redis 실행 필수
 실행시 prod파일 필요
+
 
 <br><br>
 ## Git Flow
