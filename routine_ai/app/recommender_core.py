@@ -59,7 +59,7 @@ class HybridKNNRecommender:
     def from_mysql(cls,
                 schema: str,
                 plan_table: Optional[str] = "user_weekly_plan_with_routine",
-                master_table: Optional[str] = "routine_master_table",
+                master_table: Optional[str] = "template",
                 survey_table: Optional[str] = "user_survey_flags",
                 plan_sql: Optional[str] = None,
                 master_sql: Optional[str] = None,
@@ -81,7 +81,7 @@ class HybridKNNRecommender:
             if master_table is None:
                 raise RuntimeError("MASTER_SQL 또는 MASTER_TABLE을 지정하세요.")
             master_sql = f"""
-                SELECT `routine_id`, `category`, `routine_name`
+                SELECT `template_id`, `category`, `routine_name`
                 FROM `{schema}`.`{master_table}`
             """
 
@@ -103,7 +103,8 @@ class HybridKNNRecommender:
             survey_df = read_df(survey_sql)
         elif "survey_df" not in locals():
             survey_df = pd.DataFrame({"user_id": []})
-
+        
+        
 
         # 3) 전처리 & 빌드
         self._load_and_prepare_from_dfs(plan_df, master_df, survey_df)
@@ -121,7 +122,10 @@ class HybridKNNRecommender:
         # types
         plan["user_id"] = plan["user_id"].astype(str)
         plan["importance"] = pd.to_numeric(plan["importance"], errors="coerce").fillna(0.0).astype("float32")
-        master["routine_id"] = master["routine_id"].astype(str)
+        master["template_id"] = master["template_id"].astype(str)
+        master = master.rename(columns={'template_id': 'routine_id'})
+        
+
 
         # plan: routine_name -> routine_id 매핑
         # (routine_name 중복 시 첫 행 사용)
@@ -129,6 +133,7 @@ class HybridKNNRecommender:
         plan = plan.merge(m_map, on="routine_name", how="left")
         plan = plan.dropna(subset=["routine_id"]).copy()
         plan["routine_id"] = plan["routine_id"].astype(str)
+
 
         # --- (1) plan 기반 점수 (BM25 + importance) ---
         cfg = self.cfg
@@ -195,15 +200,23 @@ class HybridKNNRecommender:
         self.plan = plan.copy()
         self.survey_long = survey_long
         self._g_plan = g_plan
+        self._survey_users_all = (
+            survey["user_id"].astype(str).str.strip().unique().tolist()
+            if "user_id" in survey.columns else []
+        )
 
     # -------------------- Matrices --------------------
     def _build_matrices(self):
         g_plan = self._g_plan if self._g_plan is not None else pd.DataFrame(columns=["user_id", "routine_id", "score"])
         survey_long = self.survey_long if self.survey_long is not None else pd.DataFrame(columns=["user_id", "feature_id", "score"])
 
+        survey_users_all = set(getattr(self, "_survey_users_all", []))
         users = pd.Index(
-            sorted(set(g_plan["user_id"].astype(str)) |
-                   set(survey_long["user_id"].astype(str))),
+            sorted(
+                set(g_plan["user_id"].astype(str)) |
+                set(survey_long["user_id"].astype(str)) |
+                survey_users_all
+            ),
             name="user_id"
         )
 
