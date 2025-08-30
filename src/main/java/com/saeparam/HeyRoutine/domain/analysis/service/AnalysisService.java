@@ -100,44 +100,50 @@ public class AnalysisService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         int currentStreak = 0;
-        LocalDate checkDate = LocalDate.now().minusDays(1); // 어제부터 거꾸로 확인 시작
+        LocalDate checkDate = LocalDate.now();
 
-        // 무한 루프를 돌며 하루씩 과거로 이동합니다.
+        // 무한 루프를 돌며 하루씩 과거로 이동
         while (true) {
             DayType dayOfWeek = DayType.from(checkDate.getDayOfWeek());
 
-            // 1. 확인하려는 날짜(checkDate)에 '수행하도록 설정된' 루틴 목록이 하나라도 있는지 확인합니다.
-            boolean isRoutineScheduled = !myRoutineListRepository.findAllByUserAndDay(user, dayOfWeek).isEmpty() ||
-                    !groupRoutineListRepository.findAllByUserAndDay(user, dayOfWeek).isEmpty();
+            // 1. 확인하려는 날짜(checkDate)에 '수행하도록 설정된' 루틴 목록이 하나라도 있는지 확인
+            boolean isRoutineScheduled = !myRoutineListRepository.findAllByUserAndDay(user, dayOfWeek).isEmpty()
+                || !groupRoutineListRepository.findAllByUserAndDay(user, dayOfWeek).isEmpty();
 
-            // 2. 만약 그날에 예정된 루틴이 아예 없었다면, 연속 기록에 영향을 주지 않고 그냥 건너뜁니다.
+            // 2. 만약 그날에 예정된 루틴이 아예 없었다면, 연속 기록에 영향을 주지 않고 그냥 건너뜀
             if (!isRoutineScheduled) {
-//                currentStreak = 0;
-                checkDate = checkDate.minusDays(1); // 다음 날(과거)로 이동
-                // 너무 과거 데이터까지 확인하는 것을 방지하기 위한 안전장치 (예: 1년)
-                if (checkDate.isBefore(LocalDate.now().minusYears(1))) break;
+                checkDate = checkDate.minusDays(1);
+                if (checkDate.isBefore(LocalDate.now().minusYears(1))) {
+                    break;
+                }
                 continue; // 아래 로직을 실행하지 않고 다음 루프 시작
             }
 
             // 3. 그날의 '실제 수행 완료 기록'을 DB에서 가져옵니다.
-            List<MyRoutineListRecord> myRecords = myRoutineListRecordRepository.findByUserAndCreatedDateBetween(user, checkDate.atStartOfDay(), checkDate.plusDays(1).atStartOfDay());
-            List<GroupRoutineListDoneCheck> groupRecords = groupRoutineListDoneCheckRepository.findByUserAndCreatedDateBetween(user, checkDate.atStartOfDay(), checkDate.plusDays(1).atStartOfDay());
+            List<MyRoutineListRecord> myRecords =
+                myRoutineListRecordRepository.findByUserAndCreatedDateBetween(
+                    user, checkDate.atStartOfDay(), checkDate.plusDays(1).atStartOfDay());
+            List<GroupRoutineListDoneCheck> groupRecords =
+                groupRoutineListDoneCheckRepository.findByUserAndCreatedDateBetween(
+                    user, checkDate.atStartOfDay(), checkDate.plusDays(1).atStartOfDay());
 
-            // 4. 그날 완료한 개인 또는 그룹 루틴이 '하나라도 있는지' 확인합니다.
-            boolean hasCompletedAnyRoutine = myRecords.stream().anyMatch(MyRoutineListRecord::isDoneCheck) ||
-                    groupRecords.stream().anyMatch(GroupRoutineListDoneCheck::isDoneCheck);
+            // 4. 그날 완료한 개인 또는 그룹 루틴이 '하나라도 있는지' 확인
+            boolean hasCompletedAnyRoutine = myRecords.stream().anyMatch(MyRoutineListRecord::isDoneCheck)
+                || groupRecords.stream().anyMatch(GroupRoutineListDoneCheck::isDoneCheck);
 
-            // 5. 예정된 루틴이 있었고, 그 중 하나라도 완료했다면 성공으로 간주합니다.
+            // 5. 예정된 루틴이 있었고, 그 중 하나라도 완료했다면 성공으로 간주
             if (hasCompletedAnyRoutine) {
-                // 연속 달성일을 1 증가시키고 다음 날(과거)로 이동합니다.
+                // 연속 달성일을 1 증가시키고 다음 날(과거)로 이동
                 currentStreak++;
                 checkDate = checkDate.minusDays(1);
             } else {
-                // 예정된 루틴이 있었지만 하나도 완료하지 못했다면, 연속 기록이 깨진 것이므로 루프를 중단합니다.
+                // 예정된 루틴이 있었지만 하나도 완료하지 못했다면, 연속 기록이 깨진 것이므로 루프를 중단
                 break;
             }
 
-            if (checkDate.isBefore(LocalDate.now().minusYears(1))) break;
+            if (checkDate.isBefore(LocalDate.now().minusYears(1))) {
+                break;
+            }
         }
 
         return new MaxStreakResponseDto(currentStreak);
