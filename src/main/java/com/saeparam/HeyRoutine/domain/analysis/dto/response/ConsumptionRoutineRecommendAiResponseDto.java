@@ -7,32 +7,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 소비 루틴 맞춤 추천 응답 DTO
+ * 소비 루틴 맞춤 추천 AI 응답 DTO
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ConsumptionRoutineRecommendResponseDto {
+public class ConsumptionRoutineRecommendAiResponseDto {
 
-	private ConsumerInfo analysis;
+	private ConsumptionRoutineRecommendResponseDto.ConsumerInfo analysis;
 	private List<RoutineInfo> recommendRoutine;
 
 	@Getter
 	@NoArgsConstructor
 	@AllArgsConstructor
 	@Builder
-	public static class ConsumerInfo {
-		private String consumerType;
-		private String text;
-	}
-
-	@Getter
-	@NoArgsConstructor
-	@AllArgsConstructor
-	@Builder
 	public static class RoutineInfo {
-		private String emojiUrl;
+		private Long emojiId;
 		private String routineName;
 	}
 }

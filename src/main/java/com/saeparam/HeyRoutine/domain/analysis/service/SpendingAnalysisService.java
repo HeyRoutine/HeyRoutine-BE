@@ -190,6 +190,8 @@ public class SpendingAnalysisService {
 
         // 2. 사용 가능한 이모지 목록 조회
         List<Emoji> emojis = emojiRepository.findAll();
+        Map<Long, String> emojiMap = emojis.stream()
+            .collect(Collectors.toMap(Emoji::getId, Emoji::getEmojiUrl));
 
         String spendingJson;
         String emojiJson;
@@ -238,21 +240,31 @@ public class SpendingAnalysisService {
         String aiText = aiRes.getCandidates().get(0).getContent().getParts().get(0).getText();
         aiText = aiText.replace("```json", "").replace("```", "").trim();
 
-        ConsumptionRoutineRecommendResponseDto response;
+        ConsumptionRoutineRecommendAiResponseDto aiResponse;
         try {
-            response = objectMapper.readValue(aiText, ConsumptionRoutineRecommendResponseDto.class);
+            aiResponse = objectMapper.readValue(aiText, ConsumptionRoutineRecommendAiResponseDto.class);
         } catch (JsonProcessingException e) {
             throw new TokenHandler(ErrorStatus.AI_RESPONSE_ERROR);
         }
 
-        if (response.getRecommendRoutine() != null && response.getRecommendRoutine().size() > 2) {
-            response = ConsumptionRoutineRecommendResponseDto.builder()
-                .analysis(response.getAnalysis())
-                .recommendRoutine(response.getRecommendRoutine().subList(0, 2))
-                .build();
+        List<ConsumptionRoutineRecommendAiResponseDto.RoutineInfo> aiRoutines = aiResponse.getRecommendRoutine();
+        if (aiRoutines != null && aiRoutines.size() > 2) {
+            aiRoutines = aiRoutines.subList(0, 2);
         }
 
-        return response;
+        List<ConsumptionRoutineRecommendResponseDto.RoutineInfo> routines =
+            aiRoutines == null ? Collections.emptyList() :
+                aiRoutines.stream()
+                    .map(r -> ConsumptionRoutineRecommendResponseDto.RoutineInfo.builder()
+                        .emojiUrl(emojiMap.get(r.getEmojiId()))
+                        .routineName(r.getRoutineName())
+                        .build())
+                    .toList();
+
+        return ConsumptionRoutineRecommendResponseDto.builder()
+            .analysis(aiResponse.getAnalysis())
+            .recommendRoutine(routines)
+            .build();
     }
 
     public Object recommendProduct(UUID userId) {
