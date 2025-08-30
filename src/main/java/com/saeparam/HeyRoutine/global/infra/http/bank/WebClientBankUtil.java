@@ -212,6 +212,28 @@ public class WebClientBankUtil {
     }
 
     /**
+     * 계좌 잔액 조회 요청
+     */
+    public Mono<AccountBalanceResponseDto> inquireAccountBalance(String userKey, String accountNo) {
+        String url = baseUrl + apiVersion + "/edu/demandDeposit/inquireDemandDepositAccountBalance";
+        BankAccountHeaderDto header = createHeader(
+            "inquireDemandDepositAccountBalance",
+            "inquireDemandDepositAccountBalance",
+            userKey
+        );
+        AccountBalanceRequestDto requestDto = new AccountBalanceRequestDto(header, accountNo);
+
+        return webClientConfig.webClient().method(HttpMethod.POST)
+            .uri(url)
+            .bodyValue(requestDto)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError, clientResponse ->
+                clientResponse.bodyToMono(String.class)
+                    .flatMap(errorBody -> Mono.error(new RuntimeException("API Error: " + errorBody))))
+            .bodyToMono(AccountBalanceResponseDto.class);
+    }
+
+    /**
      * 계좌 입금 요청
      */
     public Mono<AccountTransferResponseDto> deposit(String userKey, String accountNo, long amount, String summary) {

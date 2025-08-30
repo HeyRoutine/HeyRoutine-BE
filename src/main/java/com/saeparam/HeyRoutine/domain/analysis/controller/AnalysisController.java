@@ -2,7 +2,9 @@ package com.saeparam.HeyRoutine.domain.analysis.controller;
 
 
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.MaxStreakResponseDto;
+import com.saeparam.HeyRoutine.domain.analysis.dto.response.WeeklyPointResponseDto;
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.WeeklySummaryDto;
+import com.saeparam.HeyRoutine.domain.analysis.service.AnalysisPointService;
 import com.saeparam.HeyRoutine.domain.analysis.service.AnalysisService;
 import com.saeparam.HeyRoutine.domain.analysis.service.SpendingAnalysisService;
 import com.saeparam.HeyRoutine.domain.routine.enums.Category;
@@ -29,6 +31,7 @@ public class AnalysisController {
     private final AnalysisService analysisService;
     private final JwtTokenProvider jwtTokenProvider;
     private final SpendingAnalysisService spendingAnalysisService;
+    private final AnalysisPointService analysisPointService;
 
     @GetMapping("/weekly-summary")
     @Operation(summary = "주간 요약 데이터 조회 API", description = "선택된 기간 동안의 루틴별 수행 여부를 조회합니다.")
@@ -80,5 +83,14 @@ public class AnalysisController {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
         return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.recommendProduct(userId)));
+    }
+
+
+    @PostMapping("/weekly-point")
+    @Operation(summary = "연속 7일 달성 포인트 지급 API", description = "연속 7일 분석 달성 시 100p 지급")
+    public ResponseEntity<?> giveWeeklyPoint(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        WeeklyPointResponseDto result = analysisPointService.giveWeeklyPoint(userId);
+        return ResponseEntity.ok(ApiResponse.onSuccess(result));
     }
 }

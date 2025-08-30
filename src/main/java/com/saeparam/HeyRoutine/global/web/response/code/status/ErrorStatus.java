@@ -57,6 +57,9 @@ public enum ErrorStatus implements BaseErrorCode {
     STOCK_IS_NULL(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5000", "재고가 부족합니다"),
     USER_POINT_LACK(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5001", "유저의 포인트가 부족합니다"),
 
+    // analysis 응답
+    WEEKLY_BONUS_NOT_ELIGIBLE(HttpStatus.BAD_REQUEST, "ANALYSIS4000", "7일 연속 달성 여부를 확인하세요."),
+    WEEKLY_BONUS_ALREADY_RECEIVED(HttpStatus.CONFLICT, "ANALYSIS4090", "이미 보상을 수령했습니다."),
 
     // 루틴관련 응답
     MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
