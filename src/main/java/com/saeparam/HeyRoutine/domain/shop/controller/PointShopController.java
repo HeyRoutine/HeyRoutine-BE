@@ -1,6 +1,7 @@
 package com.saeparam.HeyRoutine.domain.shop.controller;
 
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
+import com.saeparam.HeyRoutine.domain.shop.dto.request.ShopAccountTransferRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.enums.PointShopCategory;
@@ -70,6 +71,15 @@ public class PointShopController {
         UUID userId = jwtTokenProvider.getUserId(token.substring(7));
 
         String result=pointShopService.buyProduct("shop"+id,userId,id);
+        return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
+    }
+
+    @PostMapping("/account-transfer")
+    @Operation(summary = "포인트 전환 API", description = "포인트를 전환합니다.")
+    public ResponseEntity<?> accountTransfer(@RequestHeader("Authorization") String token, @RequestBody ShopAccountTransferRequestDto shopAccountTransferRequestDto) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+
+        Long result=pointShopService.accountTransfer(userId,shopAccountTransferRequestDto);
         return ResponseEntity.ok().body(ApiResponse.onSuccess(result));
     }
 

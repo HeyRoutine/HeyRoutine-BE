@@ -1,7 +1,9 @@
 package com.saeparam.HeyRoutine.domain.shop.service;
 
 
+import com.saeparam.HeyRoutine.domain.finance.dto.response.AccountBalanceResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.request.PointShopPostRequestDto;
+import com.saeparam.HeyRoutine.domain.shop.dto.request.ShopAccountTransferRequestDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopDetailResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.dto.response.PointShopListResponseDto;
 import com.saeparam.HeyRoutine.domain.shop.entity.PointShop;
@@ -12,6 +14,7 @@ import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.common.aop.DistributedLock;
 import com.saeparam.HeyRoutine.global.error.handler.ShopHandler;
 import com.saeparam.HeyRoutine.global.error.handler.UserHandler;
+import com.saeparam.HeyRoutine.global.infra.http.bank.WebClientBankUtil;
 import com.saeparam.HeyRoutine.global.web.response.PaginatedResponse;
 import com.saeparam.HeyRoutine.global.web.response.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class PointShopService {
 
     private final PointShopRepository pointShopRepository;
     private final UserRepository userRepository;
+    private final WebClientBankUtil webClientBankUtil;
 
     @Transactional
     public String postProduct(PointShopPostRequestDto pointShopPostRequestDto) {
@@ -92,5 +96,30 @@ public class PointShopService {
     }
 
 
+    @Transactional
+    public Long accountTransfer(UUID userId, ShopAccountTransferRequestDto shopAccountTransferRequestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+        if (!user.getBankAccount().equals(shopAccountTransferRequestDto.getAccount())){
+            throw new UserHandler(ErrorStatus.USER_NOT_BANK_ACCOUNT);
+        }
+        if(user.getPoint()<shopAccountTransferRequestDto.getPrice()){
+            throw new ShopHandler(ErrorStatus.USER_POINT_LACK);
+        }
+        user.usePoints(shopAccountTransferRequestDto.getPrice());
+        double amount = shopAccountTransferRequestDto.getPrice() * 0.7;
+        long roundedAmount = (long) Math.ceil(amount);
 
+        webClientBankUtil.deposit(
+                user.getUserKey(),
+                user.getBankAccount(),
+                roundedAmount,
+                "헤이루틴 포인트적립"
+        ).block();
+        AccountBalanceResponseDto balanceResponse = webClientBankUtil
+            .inquireAccountBalance(user.getUserKey(), user.getBankAccount())
+            .block();
+
+        return Long.parseLong(balanceResponse.getRec().getAccountBalance());
+    }
 }
