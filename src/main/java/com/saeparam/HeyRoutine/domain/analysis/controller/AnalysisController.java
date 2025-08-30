@@ -76,6 +76,12 @@ public class AnalysisController {
         return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.analysisMyConsumptionRecommend(userId)));
     }
 
+    @GetMapping("/rcmd-cosumRoutine")
+    @Operation(summary = "소비 루틴 맞춤 추천 조회 API", description = "소비 카테고리 분석 결과를 바탕으로 루틴을 추천합니다.")
+    public ResponseEntity<?> rcmdConsumptionRoutine(@RequestHeader("Authorization") String token) {
+        UUID userId = jwtTokenProvider.getUserId(token.substring(7));
+        return ResponseEntity.ok(ApiResponse.onSuccess(spendingAnalysisService.recommendConsumptionRoutine(userId)));
+    }
 
     @GetMapping("/recommend-product")
     @Operation(summary = "금융상품 추천  API", description = "해당유저의 소비패턴을 분석하여 금융상품 추천")
