@@ -11,6 +11,8 @@ import com.saeparam.HeyRoutine.domain.analysis.dto.request.ProductRecommendReque
 import com.saeparam.HeyRoutine.domain.analysis.dto.response.*;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryListResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.service.FinanceService;
+import com.saeparam.HeyRoutine.domain.routine.entity.Emoji;
+import com.saeparam.HeyRoutine.domain.routine.repository.EmojiRepository;
 import com.saeparam.HeyRoutine.domain.user.entity.User;
 import com.saeparam.HeyRoutine.domain.user.repository.UserRepository;
 import com.saeparam.HeyRoutine.global.error.handler.TokenHandler;
@@ -41,6 +43,7 @@ public class SpendingAnalysisService {
     private final WebClientAiUtil webClientAiUtil;
     private final ObjectMapper objectMapper;
     private final WebClientBankUtil webClientBankUtil;
+    private final EmojiRepository emojiRepository;
 
 
 
@@ -174,6 +177,82 @@ public class SpendingAnalysisService {
                 .comparisonPercentage(comparisonPercentage)
                 .categorySpendings(categorySpendings)
                 .build();
+    }
+
+    /**
+     * 소비 카테고리별 지출 정보를 기반으로 맞춤 루틴을 추천한다.
+     * Gemini LLM을 호출하여 소비자 타입과 추천 루틴을 생성한다.
+     */
+    public ConsumptionRoutineRecommendResponseDto recommendConsumptionRoutine(UUID userId) {
+        // 1. 카테고리별 지출 정보 조회
+        ConsumptionAnalysisResponseDto consumption = analysisMyConsumptionRecommend(userId);
+        List<CategorySpendingDto> categorySpendings = consumption.getCategorySpendings();
+
+        // 2. 사용 가능한 이모지 목록 조회
+        List<Emoji> emojis = emojiRepository.findAll();
+
+        String spendingJson;
+        String emojiJson;
+        try {
+            spendingJson = objectMapper.writeValueAsString(Map.of("categorySpendings", categorySpendings));
+            emojiJson = objectMapper.writeValueAsString(
+                emojis.stream()
+                    .map(e -> Map.of("emojiId", e.getId(), "emojiUrl", e.getEmojiUrl()))
+                    .toList());
+        } catch (JsonProcessingException e) {
+            throw new TokenHandler(ErrorStatus.AI_SERVICE_ERROR);
+        }
+
+        // 3. Gemini 요청 프롬프트 생성
+        String prompt = """
+                너는 소비 루틴 코치야. 아래는 사용자의 카테고리별 소비 내역과 사용할 수 있는 이모지 목록이야.
+                %s
+                이모지 목록: %s
+                1. 소비자 타입을 최대 8자로 작성해.
+                2. 소비 카테고리에 대한 분석을 70자 이내로 작성해.
+                3. 이모지 목록에서 적절한 id를 선택해 루틴 이름과 함께 1개에서 2개의 추천 루틴을 제공해.
+                응답은 반드시 JSON 형식으로 아래 구조를 따라야 해.
+
+                ```json
+                {
+                  "analysis": {
+                    "consumerType": "",
+                    "text": ""
+                  },
+                  "recommendRoutine": [
+                    {
+                      "emojiId": 0,
+                      "routineName": ""
+                    }
+                  ]
+                }
+                ```
+                """.formatted(spendingJson, emojiJson);
+
+        GeminiReqDto request = new GeminiReqDto(prompt);
+        GeminiResDto aiRes = webClientAiUtil.requestWeeklySpendingAnalysis(request).block();
+        if (aiRes == null || aiRes.getCandidates() == null || aiRes.getCandidates().isEmpty()) {
+            throw new TokenHandler(ErrorStatus.AI_RESPONSE_ERROR);
+        }
+
+        String aiText = aiRes.getCandidates().get(0).getContent().getParts().get(0).getText();
+        aiText = aiText.replace("```json", "").replace("```", "").trim();
+
+        ConsumptionRoutineRecommendResponseDto response;
+        try {
+            response = objectMapper.readValue(aiText, ConsumptionRoutineRecommendResponseDto.class);
+        } catch (JsonProcessingException e) {
+            throw new TokenHandler(ErrorStatus.AI_RESPONSE_ERROR);
+        }
+
+        if (response.getRecommendRoutine() != null && response.getRecommendRoutine().size() > 2) {
+            response = ConsumptionRoutineRecommendResponseDto.builder()
+                .analysis(response.getAnalysis())
+                .recommendRoutine(response.getRecommendRoutine().subList(0, 2))
+                .build();
+        }
+
+        return response;
     }
 
     public Object recommendProduct(UUID userId) {

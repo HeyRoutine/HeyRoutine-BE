@@ -411,13 +411,14 @@ public class UserService {
             userInRoomRepository.deleteAllByGroupRoutineList(group);
 
             List<GroupRoutineMiddle> middles = groupRoutineMiddleRepository.findByRoutineList(group);
+
+            groupRoutineMiddleRepository.deleteAllByRoutineList(group);
+            groupRoutinDaysRepository.deleteAllByGroupRoutineList(group);
+            groupRoutineListRepository.delete(group);
             for (GroupRoutineMiddle middle : middles) {
                 routineRecordRepository.deleteAllByRoutine(middle.getRoutine());
                 routineRepository.delete(middle.getRoutine());
             }
-            groupRoutineMiddleRepository.deleteAllByRoutineList(group);
-            groupRoutinDaysRepository.deleteAllByGroupRoutineList(group);
-            groupRoutineListRepository.delete(group);
         }
 
         // 사용자가 참여중인 단체 루틴에서 제거
@@ -434,6 +435,8 @@ public class UserService {
         guestbookRepository.deleteAllByUser(user);
         groupRoutineListDoneCheckRepository.deleteAllByUser(user);
         routineRecordRepository.deleteAllByUser(user);
+        fcmTokenRepository.deleteAllByUser(user);
+
 
         // 최종적으로 사용자 삭제
         userRepository.delete(user);
