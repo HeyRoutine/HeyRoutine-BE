@@ -6,6 +6,8 @@ git clone https://github.com/HeyRoutine/HeyRoutine-BE.git
 <br>
 ./gradlew bootRun
 <br>
+inteliJ 실행시 SpringBoot 실행
+<br>
 <br>
 springBoot version : 3.3.1
 java version : 17
