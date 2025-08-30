@@ -5,6 +5,16 @@ HeyRoutine 백엔드 Repository
 git clone https://github.com/HeyRoutine/HeyRoutine-BE.git
 <br>
 ./gradlew bootRun
+<br>
+<br>
+springBoot version : 3.3.1
+java version : 17
+SDK : corretto17
+DB : Mysql,redis
+<br>
+<br>
+실행시 prod파일 필요
+
 <br><br>
 ## Git Flow
 - main
