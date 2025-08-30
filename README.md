@@ -9,10 +9,10 @@ git clone https://github.com/HeyRoutine/HeyRoutine-BE.git
 inteliJ 실행시 SpringBoot 실행
 <br>
 <br>
-springBoot version : 3.3.1
-java version : 17
-SDK : corretto17
-DB : Mysql,redis
+springBoot version : 3.3.1<br>
+java version : 17<br>
+SDK : corretto17<br>
+DB : Mysql,redis<br>
 <br>
 <br>
 실행시 prod파일 필요
