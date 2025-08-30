@@ -1,5 +1,8 @@
 package com.saeparam.HeyRoutine.domain.finance.service;
 
+import com.saeparam.HeyRoutine.domain.fcm.entity.FcmToken;
+import com.saeparam.HeyRoutine.domain.fcm.repository.FcmTokenRepository;
+import com.saeparam.HeyRoutine.domain.fcm.service.FcmTokenService;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.CheckAuthCodeResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.OpenAccountAuthResponseDto;
 import com.saeparam.HeyRoutine.domain.finance.dto.response.TransactionHistoryListResponseDto;
@@ -36,7 +39,8 @@ import reactor.core.scheduler.Schedulers;
 public class FinanceServiceImpl implements FinanceService{
     private final UserRepository userRepository;
     private final WebClientBankUtil webClientBankUtil;
-    private final FcmService fcmService;
+    private final FcmTokenService fcmTokenService;
+    private final FcmTokenRepository fcmTokenRepository;
 
     private static final String AUTH_TEXT = "헤이루틴"; // 거래 요약에 표시될 기업명
 
@@ -75,8 +79,10 @@ public class FinanceServiceImpl implements FinanceService{
         // 계좌번호 저장
         user.setBankAccount(accountNo);
 
+        FcmToken fcmToken=fcmTokenRepository.findByUser(user)
+                .orElseThrow(()->new UserHandler(ErrorStatus.FCM_NOT_FOUND));
         // FCM으로 인증번호 전송
-        fcmService.sendAccountAuthCode(user.getId(), authCode);
+        fcmTokenService.sendPushNotification(fcmToken.getToken(),"계좌 1원인증 번호",authCode).block();
 
         return authCode;
     }
