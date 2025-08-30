@@ -41,6 +41,7 @@ public enum ErrorStatus implements BaseErrorCode {
     UNIVERSITY_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4007", "해당 대학교가 없습니다."),
     MAJOR_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4008", "해당 학과가 없습니다."),
     INVALID_RANK_TYPE(HttpStatus.UNPROCESSABLE_ENTITY, "RANK4221", "랭킹 타입은 university 또는 major여야 합니다."),
+    USER_NOT_BANK_ACCOUNT(HttpStatus.BAD_REQUEST, "USER4009", "유저의 계좌정보가 일치하지 않습니다"),
 
     // password 응답
     PASSWORD_NOT_MATCH(HttpStatus.BAD_REQUEST, "PASSWORD4000", "비밀번호가 맞지 않습니다."),
@@ -55,6 +56,7 @@ public enum ErrorStatus implements BaseErrorCode {
     PRODUCT_NOT_FOUND(HttpStatus.BAD_REQUEST,"SHOP4000","해당 ID의 상품을 찾을 수 없습니다: "),
     STOCK_IS_NULL(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5000", "재고가 부족합니다"),
     USER_POINT_LACK(HttpStatus.INTERNAL_SERVER_ERROR, "SHOP5001", "유저의 포인트가 부족합니다"),
+
 
     // 루틴관련 응답
     MY_ROUTINE_LIST_NOT_FOUND(HttpStatus.BAD_REQUEST,"ROUTINE4000","해당 MyRoutineList 를 찾을 수 업습니다. "),
